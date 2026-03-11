@@ -28,7 +28,7 @@ namespace MountainGoap {
         /// <param name="sensors">Sensors available to the agent.</param>
         /// <param name="costMaximum">Maximum cost of an allowable plan.</param>
         /// <param name="stepMaximum">Maximum steps in an allowable plan.</param>
-        public Agent(string? name = null, ConcurrentDictionary<string, object?>? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, List<Action>? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue) {
+        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, List<Action>? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue) {
             Name = name ?? $"Agent {Guid.NewGuid()}";
             if (state != null) State = state;
             if (memory != null) Memory = memory;
@@ -87,7 +87,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets the current world state from the agent perspective.
         /// </summary>
-        public ConcurrentDictionary<string, object?> State { get; set; } = new();
+        public State State { get; set; } = new();
 
         /// <summary>
         /// Gets or sets the memory storage object for the agent.

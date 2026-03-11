@@ -22,10 +22,11 @@ namespace MountainGoap {
             ActionNode? cursor;
             ActionAStar? bestAstar = null;
             BaseGoal? bestGoal = null;
+            var baseState = agent.State.CreatePlanningSnapshot();
             foreach (var goal in agent.Goals) {
                 Agent.TriggerOnPlanningStartedForSingleGoal(agent, goal);
-                ActionGraph graph = new(agent.Actions, agent.State);
-                ActionNode start = new(null, agent.State, new());
+                ActionGraph graph = new(agent.Actions, baseState);
+                ActionNode start = new(null, new PlanningNodeState(baseState), new());
                 astar = new(graph, start, goal, costMaximum, stepMaximum);
                 cursor = astar.FinalPoint;
                 if (cursor is not null && astar.CostSoFar[cursor] == 0) Agent.TriggerOnPlanningFinishedForSingleGoal(agent, goal, 0);

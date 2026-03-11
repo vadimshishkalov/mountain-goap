@@ -3,7 +3,6 @@
 // </copyright>
 namespace MountainGoap {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -168,7 +167,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="currentState">State as it will be when cost is relevant.</param>
         /// <returns>The cost of the action.</returns>
-        public float GetCost(ConcurrentDictionary<string, object?> currentState) {
+        public float GetCost(IReadOnlyState currentState) {
             try {
                 return costCallback(this, currentState);
             }
@@ -202,7 +201,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="state">The current world state.</param>
         /// <returns>True if the action is possible, otherwise false.</returns>
-        internal bool IsPossible(ConcurrentDictionary<string, object?> state) {
+        internal bool IsPossible(IReadOnlyState state) {
             foreach (var kvp in preconditions) {
                 if (!state.ContainsKey(kvp.Key)) return false;
                 if (state[kvp.Key] == null && state[kvp.Key] != kvp.Value) return false;
@@ -229,7 +228,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="state">World state when the action would be performed.</param>
         /// <returns>A list of possible parameter dictionaries that could be used.</returns>
-        internal List<Dictionary<string, object?>> GetPermutations(ConcurrentDictionary<string, object?> state) {
+        internal List<Dictionary<string, object?>> GetPermutations(IReadOnlyState state) {
             List<Dictionary<string, object?>> combinedOutputs = new();
             Dictionary<string, List<object>> outputs = new();
             foreach (var kvp in permutationSelectors) outputs[kvp.Key] = kvp.Value(state);
@@ -257,20 +256,20 @@ namespace MountainGoap {
         /// Applies the effects of the action.
         /// </summary>
         /// <param name="state">World state to which to apply effects.</param>
-        internal void ApplyEffects(ConcurrentDictionary<string, object?> state) {
-            foreach (var kvp in postconditions) state[kvp.Key] = kvp.Value;
+        internal void ApplyEffects(IState state) {
+            foreach (var kvp in postconditions) state.Set(kvp.Key, kvp.Value);
             foreach (var kvp in arithmeticPostconditions) {
                 if (!state.ContainsKey(kvp.Key)) continue;
-                if (state[kvp.Key] is int stateInt && kvp.Value is int conditionInt) state[kvp.Key] = stateInt + conditionInt;
-                else if (state[kvp.Key] is float stateFloat && kvp.Value is float conditionFloat) state[kvp.Key] = stateFloat + conditionFloat;
-                else if (state[kvp.Key] is double stateDouble && kvp.Value is double conditionDouble) state[kvp.Key] = stateDouble + conditionDouble;
-                else if (state[kvp.Key] is long stateLong && kvp.Value is long conditionLong) state[kvp.Key] = stateLong + conditionLong;
-                else if (state[kvp.Key] is decimal stateDecimal && kvp.Value is decimal conditionDecimal) state[kvp.Key] = stateDecimal + conditionDecimal;
-                else if (state[kvp.Key] is DateTime stateDateTime && kvp.Value is TimeSpan conditionTimeSpan) state[kvp.Key] = stateDateTime + conditionTimeSpan;
+                if (state[kvp.Key] is int stateInt && kvp.Value is int conditionInt) state.Set(kvp.Key, stateInt + conditionInt);
+                else if (state[kvp.Key] is float stateFloat && kvp.Value is float conditionFloat) state.Set(kvp.Key, stateFloat + conditionFloat);
+                else if (state[kvp.Key] is double stateDouble && kvp.Value is double conditionDouble) state.Set(kvp.Key, stateDouble + conditionDouble);
+                else if (state[kvp.Key] is long stateLong && kvp.Value is long conditionLong) state.Set(kvp.Key, stateLong + conditionLong);
+                else if (state[kvp.Key] is decimal stateDecimal && kvp.Value is decimal conditionDecimal) state.Set(kvp.Key, stateDecimal + conditionDecimal);
+                else if (state[kvp.Key] is DateTime stateDateTime && kvp.Value is TimeSpan conditionTimeSpan) state.Set(kvp.Key, stateDateTime + conditionTimeSpan);
             }
             foreach (var kvp in parameterPostconditions) {
                 if (!parameters.ContainsKey(kvp.Key)) continue;
-                state[kvp.Value] = parameters[kvp.Key];
+                state.Set(kvp.Value, parameters[kvp.Key]);
             }
             stateMutator?.Invoke(this, state);
         }
@@ -310,7 +309,7 @@ namespace MountainGoap {
         }
 
 #pragma warning disable S1172 // Unused method parameters should be removed
-        private static float DefaultCostCallback(Action action, ConcurrentDictionary<string, object?> currentState) {
+        private static float DefaultCostCallback(Action action, IReadOnlyState currentState) {
             return action.cost;
         }
 #pragma warning restore S1172 // Unused method parameters should be removed

@@ -1,4 +1,4 @@
-﻿// <copyright file="ActionNode.cs" company="Chris Muller">
+// <copyright file="ActionNode.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,19 +15,19 @@ namespace MountainGoap {
         /// Initializes a new instance of the <see cref="ActionNode"/> class.
         /// </summary>
         /// <param name="action">Action to be assigned to the node.</param>
-        /// <param name="state">State to be assigned to the node.</param>
-        /// <param name="parameters">Paramters to be passed to the action in the node.</param>
-        internal ActionNode(Action? action, ConcurrentDictionary<string, object?> state, Dictionary<string, object?> parameters) {
+        /// <param name="state">Planning state to be assigned to the node. Caller is responsible for providing the correct IPlanningStepState.</param>
+        /// <param name="parameters">Parameters to be passed to the action in the node.</param>
+        internal ActionNode(Action? action, IPlanningStepState state, Dictionary<string, object?> parameters) {
             if (action != null) Action = action.Copy();
-            State = state.Copy();
+            State = state;
             Parameters = parameters.Copy();
             Action?.SetParameters(Parameters);
         }
 
         /// <summary>
-        /// Gets or sets the state of the world for this action node.
+        /// Gets or sets the planning state of the world for this action node.
         /// </summary>
-        public ConcurrentDictionary<string, object?> State { get; set; }
+        public IPlanningStepState State { get; set; }
 
         /// <summary>
         /// Gets or sets parameters to be passed to the action.
@@ -78,7 +78,7 @@ namespace MountainGoap {
             var hashCode = 629302477;
             if (Action != null) hashCode = (hashCode * -1521134295) + EqualityComparer<Action>.Default.GetHashCode(Action);
             else hashCode *= -1521134295;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<ConcurrentDictionary<string, object?>>.Default.GetHashCode(State);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<IPlanningStepState>.Default.GetHashCode(State);
             return hashCode;
         }
 
@@ -87,23 +87,27 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="currentState">Current state after previous node is executed.</param>
         /// <returns>The cost of the action to be executed.</returns>
-        internal float Cost(ConcurrentDictionary<string, object?> currentState) {
+        internal float Cost(IReadOnlyState currentState) {
             if (Action == null) return float.MaxValue;
             return Action.GetCost(currentState);
         }
 
         private bool StateMatches(ActionNode otherNode) {
-            foreach (var kvp in State) {
-                if (!otherNode.State.ContainsKey(kvp.Key)) return false;
-                if (otherNode.State[kvp.Key] == null && otherNode.State[kvp.Key] != kvp.Value) return false;
-                if (otherNode.State[kvp.Key] == null && otherNode.State[kvp.Key] == kvp.Value) continue;
-                if (otherNode.State[kvp.Key] is object obj && !obj.Equals(kvp.Value)) return false;
+            foreach (var key in State.Keys) {
+                if (!otherNode.State.ContainsKey(key)) return false;
+                var val = State[key];
+                var otherVal = otherNode.State[key];
+                if (val == null && val != otherVal) return false;
+                if (val == null && val == otherVal) continue;
+                if (val is object obj && !obj.Equals(otherVal)) return false;
             }
-            foreach (var kvp in otherNode.State) {
-                if (!State.ContainsKey(kvp.Key)) return false;
-                if (State[kvp.Key] == null && State[kvp.Key] != kvp.Value) return false;
-                if (State[kvp.Key] == null && State[kvp.Key] == kvp.Value) continue;
-                if (otherNode.State[kvp.Key] is object obj && !obj.Equals(kvp.Value)) return false;
+            foreach (var key in otherNode.State.Keys) {
+                if (!State.ContainsKey(key)) return false;
+                var val = otherNode.State[key];
+                var thisVal = State[key];
+                if (val == null && val != thisVal) return false;
+                if (val == null && val == thisVal) continue;
+                if (val is object obj && !obj.Equals(thisVal)) return false;
             }
             return true;
         }

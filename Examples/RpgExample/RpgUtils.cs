@@ -3,7 +3,6 @@
 // </copyright>
 
 namespace Examples {
-    using System.Collections.Concurrent;
     using System.Numerics;
     using MountainGoap;
 
@@ -58,7 +57,7 @@ namespace Examples {
         /// </summary>
         /// <param name="state">State for the agent running the selector.</param>
         /// <returns>List of all enemies on the map.</returns>
-        internal static List<object> EnemyPermutations(ConcurrentDictionary<string, object?> state) {
+        internal static List<object> EnemyPermutations(IReadOnlyState state) {
             var enemies = new List<object>();
             if (state["agents"] is not List<Agent> agents || state["faction"] is not string faction) return enemies;
             return agents.Where((agent) => agent.State["faction"] is string faction2 && faction2 != faction).ToList<object>();
@@ -69,7 +68,7 @@ namespace Examples {
         /// </summary>
         /// <param name="state">State for the agent running the selector.</param>
         /// <returns>List of all food positions on the map.</returns>
-        internal static List<object> FoodPermutations(ConcurrentDictionary<string, object?> state) {
+        internal static List<object> FoodPermutations(IReadOnlyState state) {
             var foodPositions = new List<object>();
             if (state["foodPositions"] is not List<Vector2> sourcePositions) return foodPositions;
             foreach (var position in sourcePositions) foodPositions.Add(position);
@@ -81,7 +80,7 @@ namespace Examples {
         /// </summary>
         /// <param name="state">Current agent state.</param>
         /// <returns>List of all possible starting positions for a move action.</returns>
-        internal static List<object> StartingPositionPermutations(ConcurrentDictionary<string, object?> state) {
+        internal static List<object> StartingPositionPermutations(IReadOnlyState state) {
             var startingPositions = new List<object>();
             if (state["position"] is not Vector2 position) return startingPositions;
             startingPositions.Add(position);
@@ -95,7 +94,7 @@ namespace Examples {
         /// <param name="state">State as it will be when cost is relevant.</param>
         /// <returns>The cost of the action.</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        internal static float GoToEnemyCost(Action action, ConcurrentDictionary<string, object?> state) {
+        internal static float GoToEnemyCost(Action action, IReadOnlyState state) {
             if (action.GetParameter("startingPosition") is not Vector2 startingPosition || action.GetParameter("target") is not Agent target) return float.MaxValue;
             if (target.State["position"] is not Vector2 targetPosition) return float.MaxValue;
             return Distance(startingPosition, targetPosition);
@@ -109,7 +108,7 @@ namespace Examples {
         /// /// <param name="state">State as it will be when cost is relevant.</param>
         /// <returns>The cost of the action.</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        internal static float GoToFoodCost(Action action, ConcurrentDictionary<string, object?> state) {
+        internal static float GoToFoodCost(Action action, IReadOnlyState state) {
             if (action.GetParameter("startingPosition") is not Vector2 startingPosition || action.GetParameter("target") is not Vector2 targetPosition) return float.MaxValue;
             return Distance(startingPosition, targetPosition);
         }
