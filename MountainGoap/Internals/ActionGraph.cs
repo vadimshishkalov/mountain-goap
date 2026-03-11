@@ -19,10 +19,11 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="actions">List of actions to include in the graph.</param>
         /// <param name="baseState">Shared base state snapshot for this planning pass.</param>
-        internal ActionGraph(List<Action> actions, IReadOnlyState baseState) {
+        /// <param name="pool">Planning state pool to use for template node states.</param>
+        internal ActionGraph(List<Action> actions, IPlanningBaseState baseState) {
             foreach (var action in actions) {
                 var permutations = action.GetPermutations(baseState);
-                foreach (var permutation in permutations) ActionNodes.Add(new(action, new PlanningNodeState(baseState), permutation));
+                foreach (var permutation in permutations) ActionNodes.Add(new(action, baseState.Snapshot(), permutation));
             }
         }
 
@@ -41,5 +42,6 @@ namespace MountainGoap {
                 }
             }
         }
+
     }
 }

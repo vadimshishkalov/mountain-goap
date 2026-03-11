@@ -13,5 +13,11 @@ namespace MountainGoap {
         /// Only the delta layer is copied; the base layer is shared by reference.
         /// </summary>
         IPlanningStepState Snapshot();
+
+        /// <summary>
+        /// Returns this state to the pool for reuse. The default no-op is safe for custom implementations
+        /// that do not use a pool.
+        /// </summary>
+        void Return() { }
     }
 }

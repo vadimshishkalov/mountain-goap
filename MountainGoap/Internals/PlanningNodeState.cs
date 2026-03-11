@@ -7,20 +7,17 @@ namespace MountainGoap {
 
     /// <summary>
     /// Per-node planning state. Reads fall back from delta to shared base; writes go to delta only.
-    /// Snapshot() propagates the current path's delta to a child node without copying the base.
+    /// Snapshot() rents a child state from the pool and copies the current delta into it.
+    /// Objects are returned to the pool after the A* loop completes.
     /// </summary>
-    internal class PlanningNodeState : IPlanningStepState {
-        private readonly IReadOnlyState baseState;
-        private readonly Dictionary<string, object?> delta;
+    internal class PlanningNodeState : IPlanningStepState, IDisposable {
+        private readonly IStatePool pool;
+        private readonly Dictionary<string, object?> delta = new();
+        private PlanningBaseState baseState;
 
-        internal PlanningNodeState(IReadOnlyState baseState) {
+        internal PlanningNodeState(PlanningBaseState baseState, IStatePool pool) {
             this.baseState = baseState;
-            delta = new Dictionary<string, object?>();
-        }
-
-        private PlanningNodeState(IReadOnlyState baseState, Dictionary<string, object?> delta) {
-            this.baseState = baseState;
-            this.delta = delta;
+            this.pool = pool;
         }
 
         /// <inheritdoc/>
@@ -41,13 +38,31 @@ namespace MountainGoap {
         /// <inheritdoc/>
         public IEnumerable<string> Keys {
             get {
-                var keys = new HashSet<string>(delta.Keys);
-                foreach (var key in baseState.Keys) keys.Add(key);
-                return keys;
+                foreach (var key in delta.Keys) yield return key;
+                foreach (var key in baseState.Keys) if (!delta.ContainsKey(key)) yield return key;
             }
         }
 
         /// <inheritdoc/>
-        public IPlanningStepState Snapshot() => new PlanningNodeState(baseState, new Dictionary<string, object?>(delta));
+        public IPlanningStepState Snapshot() {
+            var child = pool.RentNodeState(baseState);
+            foreach (var kvp in delta) child.delta[kvp.Key] = kvp.Value;
+            baseState.RegisterChild(child);
+            return child;
+        }
+
+        /// <summary>
+        /// Unregisters from the root base state and returns to pool.
+        /// Safe to call directly — the base state will not attempt to return this node again.
+        /// </summary>
+        public void Dispose() {
+            delta.Clear();
+            baseState.UnregisterChild(this);
+            pool.ReturnNodeState(this);
+        }
+
+        internal void Reinitialize(PlanningBaseState newBaseState) {
+            baseState = newBaseState;
+        }
     }
 }

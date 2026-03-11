@@ -13,6 +13,15 @@ namespace MountainGoap {
     /// </summary>
     public class State : IExecutionState, IEnumerable<KeyValuePair<string, object?>> {
         private readonly ConcurrentDictionary<string, object?> data = new();
+        private readonly IStatePool pool;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="State"/> class.
+        /// </summary>
+        /// <param name="pool">Optional pool for planning state objects. If null, a new pool is created.</param>
+        public State(StatePool? pool = null) {
+            this.pool = pool ?? new StatePool();
+        }
 
         /// <inheritdoc/>
         public object? this[string key] {
@@ -46,6 +55,6 @@ namespace MountainGoap {
         /// <summary>
         /// Creates an immutable base-layer snapshot of the current state for use during a planning pass.
         /// </summary>
-        internal PlanningBaseState CreatePlanningSnapshot() => new(new Dictionary<string, object?>(data));
+        internal IPlanningBaseState Snapshot() => pool.RentBaseState(data);
     }
 }
