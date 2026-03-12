@@ -36,7 +36,7 @@
             logger.Information("Evaluating node {node} with {count} nodes leading to it.", node.Action?.Name, cameFromList.Count - 1);
         }
 
-        private void OnPlanUpdated(Agent agent, List<Action> actionList) {
+        private void OnPlanUpdated(Agent agent, List<ExecutingAction> actionList) {
             logger.Information("Agent {agent} has a new plan:", agent.Name);
             var count = 1;
             foreach (var action in actionList) {

@@ -26,7 +26,7 @@
                         postconditions: new() {
                             { "key", true }
                         },
-                        executor: (Agent agent, Action action) => {
+                        executor: (Agent agent, ExecutingAction action) => {
                             timesExecuted++;
                             if (agent.State["progress"] is int progress && progress < 3) {
                                 agent.State["progress"] = progress + 1;

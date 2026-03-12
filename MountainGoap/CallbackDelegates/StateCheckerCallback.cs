@@ -9,5 +9,5 @@ namespace MountainGoap {
     /// <param name="action">Action being executed or evaluated.</param>
     /// <param name="currentState">State as it will be when the action is executed or evaluated.</param>
     /// <returns>True if the state is okay for executing the action, otherwise false.</returns>
-    public delegate bool StateCheckerCallback(Action action, IReadOnlyState currentState);
+    public delegate bool StateCheckerCallback(ExecutingAction action, IReadOnlyState currentState);
 }

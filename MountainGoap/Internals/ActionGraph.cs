@@ -17,13 +17,12 @@ namespace MountainGoap {
         /// <summary>
         /// Initializes a new instance of the <see cref="ActionGraph"/> class.
         /// </summary>
-        /// <param name="actions">List of actions to include in the graph.</param>
+        /// <param name="actions">List of action templates to include in the graph.</param>
         /// <param name="baseState">Shared base state snapshot for this planning pass.</param>
-        /// <param name="pool">Planning state pool to use for template node states.</param>
         internal ActionGraph(List<Action> actions, IPlanningBaseState baseState) {
-            foreach (var action in actions) {
-                var permutations = action.GetPermutations(baseState);
-                foreach (var permutation in permutations) ActionNodes.Add(new(action, baseState.Snapshot(), permutation));
+            foreach (var template in actions) {
+                var permutations = template.GetPermutations(baseState);
+                foreach (var permutation in permutations) ActionNodes.Add(new(new ExecutingAction(template, permutation), baseState.Snapshot()));
             }
         }
 
@@ -33,15 +32,15 @@ namespace MountainGoap {
         /// <param name="node">Node for which to retrieve neighbors.</param>
         /// <returns>The set of action/state combinations that can be executed after the current action/state combination.</returns>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node) {
-            foreach (var otherNode in ActionNodes) {
-                if (otherNode.Action is not null && otherNode.Action.IsPossible(node.State)) {
+            foreach (var templateNode in ActionNodes) {
+                if (templateNode.Action is not null && templateNode.Action.IsPossible(node.State)) {
                     var newState = node.State.Snapshot();
-                    var newNode = new ActionNode(otherNode.Action.Copy(), newState, otherNode.Parameters.Copy());
+                    var newAction = new ExecutingAction(templateNode.Action.Template, templateNode.Action.parameters.Copy());
+                    var newNode = new ActionNode(newAction, newState);
                     newNode.Action?.ApplyEffects(newNode.State);
                     yield return newNode;
                 }
             }
         }
-
     }
 }

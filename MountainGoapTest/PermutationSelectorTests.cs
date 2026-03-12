@@ -20,8 +20,8 @@
                         }
                     )
                 },
-                actions: new() {
-                    new(
+                actions: new List<Action> {
+                    new Action(
                         name: "sample action",
                         cost: 1f,
                         preconditions: new() {
