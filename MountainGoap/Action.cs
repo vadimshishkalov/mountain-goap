@@ -36,30 +36,35 @@ namespace MountainGoap {
         /// </summary>
         private readonly CostCallback costCallback;
 
+        private static readonly Dictionary<string, object?> EmptyObjectNullableDict = new();
+        private static readonly Dictionary<string, ComparisonValuePair> EmptyComparisonDict = new();
+        private static readonly Dictionary<string, object> EmptyObjectDict = new();
+        private static readonly Dictionary<string, string> EmptyStringDict = new();
+
         /// <summary>
         /// Preconditions for the action. These things are required for the action to execute.
         /// </summary>
-        private readonly Dictionary<string, object?> preconditions = new();
+        private readonly Dictionary<string, object?> preconditions;
 
         /// <summary>
         /// Comparative preconditions for the action. Indicates that a value must be greater than or less than a certain value for the action to execute.
         /// </summary>
-        private readonly Dictionary<string, ComparisonValuePair> comparativePreconditions = new();
+        private readonly Dictionary<string, ComparisonValuePair> comparativePreconditions;
 
         /// <summary>
         /// Postconditions for the action. These will be set when the action has executed.
         /// </summary>
-        private readonly Dictionary<string, object?> postconditions = new();
+        private readonly Dictionary<string, object?> postconditions;
 
         /// <summary>
         /// Arithmetic postconditions for the action. These will be added to the current value when the action has executed.
         /// </summary>
-        private readonly Dictionary<string, object> arithmeticPostconditions = new();
+        private readonly Dictionary<string, object> arithmeticPostconditions;
 
         /// <summary>
         /// Parameter postconditions for the action. When the action has executed, the value of the parameter given in the key will be copied to the state with the name given in the value.
         /// </summary>
-        private readonly Dictionary<string, string> parameterPostconditions = new();
+        private readonly Dictionary<string, string> parameterPostconditions;
 
         /// <summary>
         /// State mutator for modifying state programmatically after action execution or evaluation.
@@ -87,21 +92,20 @@ namespace MountainGoap {
         /// <param name="stateMutator">Callback for modifying state after action execution or evaluation.</param>
         /// <param name="stateChecker">Callback for checking state before action execution or evaluation.</param>
         /// <param name="stateCostDeltaMultiplier">Callback for multiplier for delta value to provide delta cost.</param>
+        [Obsolete("Use ActionRegistry.RegisterAction instead.")]
         public Action(string? name = null, Dictionary<string, PermutationSelectorCallback>? permutationSelectors = null, ExecutorCallback? executor = null, float cost = 1f, CostCallback? costCallback = null, Dictionary<string, object?>? preconditions = null, Dictionary<string, ComparisonValuePair>? comparativePreconditions = null, Dictionary<string, object?>? postconditions = null, Dictionary<string, object>? arithmeticPostconditions = null, Dictionary<string, string>? parameterPostconditions = null, StateMutatorCallback? stateMutator = null, StateCheckerCallback? stateChecker = null, StateCostDeltaMultiplierCallback? stateCostDeltaMultiplier = null) {
-            if (permutationSelectors == null) this.permutationSelectors = new();
-            else this.permutationSelectors = permutationSelectors;
-            if (executor == null) this.executor = DefaultExecutorCallback;
-            else this.executor = executor;
+            this.permutationSelectors = permutationSelectors ?? new();
+            this.executor = executor ?? DefaultExecutorCallback;
             Name = name ?? $"Action {Guid.NewGuid()} ({this.executor.GetMethodInfo().Name})";
             this.cost = cost;
             this.costCallback = costCallback ?? ((_, _) => this.cost);
-            if (preconditions != null) this.preconditions = preconditions;
-            if (comparativePreconditions != null) this.comparativePreconditions = comparativePreconditions;
-            if (postconditions != null) this.postconditions = postconditions;
-            if (arithmeticPostconditions != null) this.arithmeticPostconditions = arithmeticPostconditions;
-            if (parameterPostconditions != null) this.parameterPostconditions = parameterPostconditions;
-            if (stateMutator != null) this.stateMutator = stateMutator;
-            if (stateChecker != null) this.stateChecker = stateChecker;
+            this.preconditions = preconditions ?? EmptyObjectNullableDict;
+            this.comparativePreconditions = comparativePreconditions ?? EmptyComparisonDict;
+            this.postconditions = postconditions ?? EmptyObjectNullableDict;
+            this.arithmeticPostconditions = arithmeticPostconditions ?? EmptyObjectDict;
+            this.parameterPostconditions = parameterPostconditions ?? EmptyStringDict;
+            this.stateMutator = stateMutator;
+            this.stateChecker = stateChecker;
             StateCostDeltaMultiplier = stateCostDeltaMultiplier ?? DefaultStateCostDeltaMultiplier;
         }
 
