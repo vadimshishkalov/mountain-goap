@@ -1,76 +1,95 @@
-﻿// <copyright file="ActionAStar.cs" company="Chris Muller">
+// <copyright file="ActionAStar.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
 namespace MountainGoap {
     using System;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using Priority_Queue;
 
     /// <summary>
-    /// AStar calculator for an action graph.
+    /// Per-agent A* search over an action graph. This object is long-lived and owned by the
+    /// agent's <see cref="Planner"/>. Call <see cref="Search"/> to run a planning pass; internal
+    /// data structures are cleared and reused between passes. All lifecycle (node/action pooling)
+    /// is delegated to the <see cref="ActionGraph"/> and <see cref="ActionPlan"/> passed in.
     /// </summary>
     internal class ActionAStar {
-        /// <summary>
-        /// Final point at which the calculation arrived.
-        /// </summary>
-        internal readonly ActionNode? FinalPoint = null;
+        private readonly FastPriorityQueue<ActionNode> frontier = new(100000);
+        private readonly Dictionary<ActionNode, float> costSoFar = new();
+        private readonly Dictionary<ActionNode, int> stepsSoFar = new();
+        private readonly Dictionary<ActionNode, ActionNode> cameFrom = new();
+        private BaseGoal? currentGoal;
 
         /// <summary>
-        /// Cost so far to get to each node.
+        /// Cost of the plan filled into the last <see cref="Search"/> call's <see cref="ActionPlan"/>.
+        /// Zero if no plan was found.
         /// </summary>
-        internal readonly ConcurrentDictionary<ActionNode, float> CostSoFar = new();
+        internal float FinalCost { get; private set; }
 
         /// <summary>
-        /// Steps so far to get to each node.
+        /// Runs A* search from <paramref name="start"/> toward <paramref name="goal"/>.
+        /// On return, <paramref name="plan"/> contains the action sequence (empty if unreachable)
+        /// and <see cref="FinalCost"/> holds the total plan cost. Node lifecycle is owned by
+        /// <paramref name="graph"/>; action lifecycle is owned by <paramref name="plan"/>.
         /// </summary>
-        internal readonly ConcurrentDictionary<ActionNode, int> StepsSoFar = new();
+        internal void Search(ActionNode start, BaseGoal goal, ActionGraph graph,
+                             ActionPlan plan, IReadOnlyState baseState,
+                             float costMaximum, int stepMaximum) {
+            FinalCost = 0;
+            currentGoal = goal;
+            ActionNode? finalPoint = null;
 
-        /// <summary>
-        /// Dictionary giving the path from start to goal.
-        /// </summary>
-        internal readonly ConcurrentDictionary<ActionNode, ActionNode> CameFrom = new();
+            frontier.Clear();
+            costSoFar.Clear();
+            stepsSoFar.Clear();
+            cameFrom.Clear();
 
-        /// <summary>
-        /// Goal state that AStar is trying to achieve.
-        /// </summary>
-        private readonly BaseGoal goal;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ActionAStar"/> class.
-        /// </summary>
-        /// <param name="graph">Graph to be traversed.</param>
-        /// <param name="start">Action from which to start.</param>
-        /// <param name="goal">Goal state to be achieved.</param>
-        /// <param name="costMaximum">Maximum allowable cost for a plan.</param>
-        /// <param name="stepMaximum">Maximum allowable steps for a plan.</param>
-        internal ActionAStar(ActionGraph graph, ActionNode start, BaseGoal goal, float costMaximum, int stepMaximum) {
-            this.goal = goal;
-            FastPriorityQueue<ActionNode> frontier = new(100000);
             frontier.Enqueue(start, 0);
-            CameFrom[start] = start;
-            CostSoFar[start] = 0;
-            StepsSoFar[start] = 0;
+            cameFrom[start] = start;
+            costSoFar[start] = 0;
+            stepsSoFar[start] = 0;
+
             while (frontier.Count > 0) {
                 var current = frontier.Dequeue();
                 if (MeetsGoal(current, start)) {
-                    FinalPoint = current;
+                    finalPoint = current;
                     break;
                 }
-                foreach (var next in graph.Neighbors(current)) {
-                    float newCost = CostSoFar[current] + next.Cost(current.State);
-                    int newStepCount = StepsSoFar[current] + 1;
+                foreach (var next in graph.Neighbors(current, baseState)) {
+                    float newCost = costSoFar[current] + next.Cost(current.State);
+                    int newStepCount = stepsSoFar[current] + 1;
                     if (newCost > costMaximum || newStepCount > stepMaximum) continue;
-                    if (!CostSoFar.ContainsKey(next) || newCost < CostSoFar[next]) {
-                        CostSoFar[next] = newCost;
-                        StepsSoFar[next] = newStepCount;
+                    if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next]) {
+                        costSoFar[next] = newCost;
+                        stepsSoFar[next] = newStepCount;
                         float priority = newCost + Heuristic(next, goal, current);
                         frontier.Enqueue(next, priority);
-                        CameFrom[next] = current;
-                        Agent.TriggerOnEvaluatedActionNode(next, CameFrom);
+                        cameFrom[next] = current;
+                        Agent.TriggerOnEvaluatedActionNode(next, cameFrom);
                     }
                 }
             }
+
+            if (finalPoint != null) {
+                FinalCost = costSoFar[finalPoint];
+                BuildPath(finalPoint, plan, cameFrom);
+            }
+
+            costSoFar.Clear();
+            stepsSoFar.Clear();
+            cameFrom.Clear();
+        }
+
+        private static void BuildPath(ActionNode finalPoint, ActionPlan plan,
+                                      Dictionary<ActionNode, ActionNode> cameFrom) {
+            var cursor = finalPoint;
+            while (cursor != null && cursor.Action != null && cameFrom.ContainsKey(cursor)) {
+                plan.Steps.Add(cursor.Action);
+                var next = cameFrom[cursor]; // capture before mutating hash
+                cursor.Action = null;        // graph.Dispose() will skip null actions
+                cursor = next;
+            }
+            plan.Steps.Reverse();
         }
 
         private static float Heuristic(ActionNode actionNode, BaseGoal goal, ActionNode current) {
@@ -115,24 +134,10 @@ namespace MountainGoap {
             return cost;
         }
 
-        private static bool IsLowerThan(object a, object b) {
-            return Utils.IsLowerThan(a, b);
-        }
-
-        private static bool IsHigherThan(object a, object b) {
-            return Utils.IsHigherThan(a, b);
-        }
-
-        private static bool IsLowerThanOrEquals(object a, object b) {
-            return Utils.IsLowerThanOrEquals(a, b);
-        }
-
-        private static bool IsHigherThanOrEquals(object a, object b) {
-            return Utils.IsHigherThanOrEquals(a, b);
-        }
-
-        private bool MeetsGoal(ActionNode actionNode, ActionNode current) {
-            return Utils.MeetsGoal(goal, actionNode, current);
-        }
+        private static bool IsLowerThan(object a, object b) => Utils.IsLowerThan(a, b);
+        private static bool IsHigherThan(object a, object b) => Utils.IsHigherThan(a, b);
+        private static bool IsLowerThanOrEquals(object a, object b) => Utils.IsLowerThanOrEquals(a, b);
+        private static bool IsHigherThanOrEquals(object a, object b) => Utils.IsHigherThanOrEquals(a, b);
+        private bool MeetsGoal(ActionNode actionNode, ActionNode current) => Utils.MeetsGoal(currentGoal!, actionNode, current);
     }
 }

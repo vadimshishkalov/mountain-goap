@@ -4,7 +4,6 @@
 
 namespace MountainGoap {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading;
 
@@ -37,6 +36,7 @@ namespace MountainGoap {
             if (sensors != null) Sensors = sensors;
             CostMaximum = costMaximum;
             StepMaximum = stepMaximum;
+            planner = new Planner(Actions, new ActionNodePool());
         }
 
         /// <summary>
@@ -79,10 +79,13 @@ namespace MountainGoap {
         /// </summary>
         public static event EvaluatedActionNodeEvent OnEvaluatedActionNode = (node, nodes) => { };
 
+        private readonly Planner planner;
+        private readonly List<ActionPlan> actionSequences = new();
+
         /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
         /// </summary>
-        public List<List<ExecutingAction>> CurrentActionSequences { get; } = new();
+        public IReadOnlyList<IActionPlan> CurrentActionSequences => actionSequences;
 
         /// <summary>
         /// Gets or sets the current world state from the agent perspective.
@@ -140,7 +143,7 @@ namespace MountainGoap {
                 StepAsync();
                 return;
             }
-            if (!IsBusy) Planner.Plan(this, CostMaximum, StepMaximum);
+            if (!IsBusy) planner.Plan(this, CostMaximum, StepMaximum);
             if (mode == StepMode.OneAction) Execute();
             else if (mode == StepMode.AllActions) while (IsBusy) Execute();
         }
@@ -149,8 +152,14 @@ namespace MountainGoap {
         /// Clears the current action sequences (also known as plans).
         /// </summary>
         public void ClearPlan() {
-            CurrentActionSequences.Clear();
+            foreach (var plan in actionSequences) plan.Dispose();
+            actionSequences.Clear();
         }
+
+        /// <summary>
+        /// Adds an action sequence to the agent's current action sequences.
+        /// </summary>
+        internal void AddActionSequence(ActionPlan plan) => actionSequences.Add(plan);
 
         /// <summary>
         /// Makes a plan.
@@ -158,7 +167,7 @@ namespace MountainGoap {
         public void Plan() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                Planner.Plan(this, CostMaximum, StepMaximum);
+                planner.Plan(this, CostMaximum, StepMaximum);
             }
         }
 
@@ -168,7 +177,7 @@ namespace MountainGoap {
         public void PlanAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { Planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
                 t.Start();
             }
         }
@@ -221,9 +230,9 @@ namespace MountainGoap {
         /// Triggers OnPlanUpdated event.
         /// </summary>
         /// <param name="agent">Agent for which the plan was updated.</param>
-        /// <param name="actionList">New action list for the agent.</param>
-        internal static void TriggerOnPlanUpdated(Agent agent, List<ExecutingAction> actionList) {
-            OnPlanUpdated(agent, actionList);
+        /// <param name="plan">New plan for the agent.</param>
+        internal static void TriggerOnPlanUpdated(Agent agent, IActionPlan plan) {
+            OnPlanUpdated(agent, plan);
         }
 
         /// <summary>
@@ -231,7 +240,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="node">Action node being evaluated.</param>
         /// <param name="nodes">List of nodes in the path that led to this point.</param>
-        internal static void TriggerOnEvaluatedActionNode(ActionNode node, ConcurrentDictionary<ActionNode, ActionNode> nodes) {
+        internal static void TriggerOnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
             OnEvaluatedActionNode(node, nodes);
         }
 
@@ -241,7 +250,7 @@ namespace MountainGoap {
         private void StepAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { Planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
                 t.Start();
             }
             else if (!IsPlanning) Execute();
@@ -251,17 +260,18 @@ namespace MountainGoap {
         /// Executes the current action sequences.
         /// </summary>
         private void Execute() {
-            if (CurrentActionSequences.Count > 0) {
-                List<List<ExecutingAction>> cullableSequences = new();
-                foreach (var sequence in CurrentActionSequences) {
-                    if (sequence.Count > 0) {
-                        var executionStatus = sequence[0].Execute(this);
-                        if (executionStatus != ExecutionStatus.Executing) sequence.RemoveAt(0);
+            if (actionSequences.Count > 0) {
+                List<ActionPlan> cullableSequences = new();
+                foreach (var sequence in actionSequences) {
+                    if (sequence.Steps.Count > 0) {
+                        var executionStatus = sequence.Steps[0].Execute(this);
+                        if (executionStatus != ExecutionStatus.Executing) sequence.ReturnStep(0);
                     }
                     else cullableSequences.Add(sequence);
                 }
                 foreach (var sequence in cullableSequences) {
-                    CurrentActionSequences.Remove(sequence);
+                    actionSequences.Remove(sequence);
+                    sequence.Dispose();
                     OnAgentActionSequenceCompleted(this);
                 }
             }

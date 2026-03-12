@@ -3,44 +3,76 @@
 // </copyright>
 
 namespace MountainGoap {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Represents a traversable action graph.
+    /// Per-planning-pass scope object. Owns all <see cref="ActionNode"/> and
+    /// <see cref="ExecutingAction"/> objects created during the pass.
+    /// Call <see cref="Dispose"/> when the pass completes to cascade-return all rented
+    /// objects to their pools and return this graph to the <see cref="IActionGraphPool"/>.
     /// </summary>
-    internal class ActionGraph {
-        /// <summary>
-        /// The set of action template nodes for the graph.
-        /// </summary>
-        internal List<ActionNode> ActionNodes = new();
+    internal class ActionGraph : IDisposable {
+        private readonly IActionGraphPool graphPool;
+        private readonly List<ActionNode> rentedNodes = new();
+        private List<Action> actions = new();
+        private IActionNodePool nodePool = null!;
+
+        internal ActionGraph(IActionGraphPool graphPool) {
+            this.graphPool = graphPool;
+        }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActionGraph"/> class.
+        /// Reinitializes this graph for a new planning pass. Called by <see cref="IActionGraphPool.Rent"/>.
         /// </summary>
-        /// <param name="actions">List of action templates to include in the graph.</param>
-        /// <param name="baseState">Shared base state snapshot for this planning pass.</param>
-        internal ActionGraph(List<Action> actions, IPlanningBaseState baseState) {
+        internal void Reinitialize(List<Action> actions, IActionNodePool nodePool) {
+            this.actions = actions;
+            this.nodePool = nodePool;
+        }
+
+        /// <summary>
+        /// Rents a node from the pool, registers it with this graph, and returns it.
+        /// </summary>
+        internal ActionNode RentNode(ExecutingAction? action, IPlanningStepState state) {
+            var node = nodePool.RentNode(action, state);
+            rentedNodes.Add(node);
+            return node;
+        }
+
+        /// <summary>
+        /// Gets the list of neighbors for a node. Permutations are generated from
+        /// <paramref name="baseState"/> (consistent across the whole planning pass);
+        /// availability is checked against <paramref name="node"/>'s full layered state.
+        /// Each yielded node is tracked by this graph and returned on <see cref="Dispose"/>.
+        /// </summary>
+        internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
             foreach (var template in actions) {
-                var permutations = template.GetPermutations(baseState);
-                foreach (var permutation in permutations) ActionNodes.Add(new(new ExecutingAction(template, permutation), baseState.Snapshot()));
+                foreach (var parameters in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, parameters);
+                    if (action.IsPossible(node.State)) {
+                        var newState = node.State.Snapshot();
+                        var newNode = RentNode(action, newState);
+                        newNode.Action?.ApplyEffects(newNode.State);
+                        yield return newNode;
+                    }
+                    else {
+                        nodePool.ReturnAction(action);
+                    }
+                }
             }
         }
 
         /// <summary>
-        /// Gets the list of neighbors for a node.
+        /// Returns all rented nodes and their non-null actions to the node pool,
+        /// then returns this graph to the graph pool.
         /// </summary>
-        /// <param name="node">Node for which to retrieve neighbors.</param>
-        /// <returns>The set of action/state combinations that can be executed after the current action/state combination.</returns>
-        internal IEnumerable<ActionNode> Neighbors(ActionNode node) {
-            foreach (var templateNode in ActionNodes) {
-                if (templateNode.Action is not null && templateNode.Action.IsPossible(node.State)) {
-                    var newState = node.State.Snapshot();
-                    var newAction = new ExecutingAction(templateNode.Action.Template, templateNode.Action.parameters.Copy());
-                    var newNode = new ActionNode(newAction, newState);
-                    newNode.Action?.ApplyEffects(newNode.State);
-                    yield return newNode;
-                }
+        public void Dispose() {
+            foreach (var node in rentedNodes) {
+                if (node.Action != null) nodePool.ReturnAction(node.Action);
+                nodePool.ReturnNode(node);
             }
+            rentedNodes.Clear();
+            graphPool.Return(this);
         }
     }
 }
