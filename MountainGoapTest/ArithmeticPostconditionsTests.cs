@@ -28,7 +28,7 @@ namespace MountainGoapTest
             List<MountainGoap.Action> actions = new() {
                 new MountainGoap.Action(
                     name: "Action1",
-                    executor: (Agent agent, MountainGoap.ExecutingAction action) => {
+                    executor: (Agent agent, MountainGoap.IAction action) => {
                         return ExecutionStatus.Succeeded;
                     },
                     arithmeticPostconditions: new Dictionary<string, object> {

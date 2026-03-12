@@ -8,7 +8,7 @@ namespace MountainGoap {
     /// Runtime instance of an action — holds a reference to its <see cref="Action"/> template and
     /// the resolved parameters for a specific permutation.
     /// </summary>
-    public class ExecutingAction {
+    public class ExecutingAction : IAction {
         /// <summary>
         /// Parameters resolved for this action instance.
         /// </summary>
@@ -27,7 +27,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets the immutable template defining this action's behavior.
         /// </summary>
-        public Action Template { get; }
+        internal Action Template { get; }
 
         /// <summary>
         /// Gets the name of the action (forwarded from template).
@@ -37,7 +37,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets multiplier for delta value to provide delta cost (forwarded from template).
         /// </summary>
-        public StateCostDeltaMultiplierCallback? StateCostDeltaMultiplier => Template.StateCostDeltaMultiplier;
+        internal StateCostDeltaMultiplierCallback? StateCostDeltaMultiplier => Template.StateCostDeltaMultiplier;
 
         /// <summary>
         /// Gets or sets the execution status of the action.
@@ -60,9 +60,14 @@ namespace MountainGoap {
         }
 
         /// <summary>
+        /// Gets all parameter keys set on this action instance.
+        /// </summary>
+        public IEnumerable<string> ParameterKeys => parameters.Keys;
+
+        /// <summary>
         /// Gets the cost of the action for the given state.
         /// </summary>
-        public float GetCost(IReadOnlyState currentState) => Template.GetCost(this, currentState);
+        internal float GetCost(IReadOnlyState currentState) => Template.GetCost(this, currentState);
 
         /// <summary>
         /// Determines whether the action is possible given the current state.

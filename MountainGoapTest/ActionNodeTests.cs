@@ -23,7 +23,7 @@
                         postconditions: new() {
                             { "key", "non-null value" }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -54,7 +54,7 @@
                         postconditions: new() {
                             { "key", null }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -85,7 +85,7 @@
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -119,7 +119,7 @@
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }
@@ -152,7 +152,7 @@
                         postconditions: new() {
                             { "key", "intermediate value" }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }
@@ -164,7 +164,7 @@
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, ExecutingAction action) => {
+                        executor: (Agent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }

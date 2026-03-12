@@ -94,7 +94,7 @@ namespace MountainGoap {
             else this.executor = executor;
             Name = name ?? $"Action {Guid.NewGuid()} ({this.executor.GetMethodInfo().Name})";
             this.cost = cost;
-            this.costCallback = costCallback ?? DefaultCostCallback;
+            this.costCallback = costCallback ?? ((_, _) => this.cost);
             if (preconditions != null) this.preconditions = preconditions;
             if (comparativePreconditions != null) this.comparativePreconditions = comparativePreconditions;
             if (postconditions != null) this.postconditions = postconditions;
@@ -113,17 +113,17 @@ namespace MountainGoap {
         /// <summary>
         /// Default multiplier callback returning 1 for all state keys.
         /// </summary>
-        public static float DefaultStateCostDeltaMultiplier(ExecutingAction? action, string stateKey) => 1f;
+        public static float DefaultStateCostDeltaMultiplier(IReadOnlyAction? action, string stateKey) => 1f;
 
         /// <summary>
         /// Event that triggers when an action begins executing.
         /// </summary>
-        public static event BeginExecuteActionEvent OnBeginExecuteAction = (agent, action, parameters) => { };
+        public static event BeginExecuteActionEvent OnBeginExecuteAction = (agent, action) => { };
 
         /// <summary>
         /// Event that triggers when an action finishes executing.
         /// </summary>
-        public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status, parameters) => { };
+        public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status) => { };
 
         /// <summary>
         /// Gets the cost of the action for the given runtime action and state.
@@ -141,16 +141,16 @@ namespace MountainGoap {
         /// Executes the action for the given agent and runtime action instance.
         /// </summary>
         internal ExecutionStatus Execute(Agent agent, ExecutingAction action) {
-            OnBeginExecuteAction(agent, action, action.parameters);
+            OnBeginExecuteAction(agent, action);
             if (IsPossible(action, agent.State)) {
                 var newState = executor(agent, action);
                 if (newState == ExecutionStatus.Succeeded) ApplyEffects(action, agent.State);
                 action.ExecutionStatus = newState;
-                OnFinishExecuteAction(agent, action, action.ExecutionStatus, action.parameters);
+                OnFinishExecuteAction(agent, action, action.ExecutionStatus);
                 return newState;
             }
             else {
-                OnFinishExecuteAction(agent, action, ExecutionStatus.NotPossible, action.parameters);
+                OnFinishExecuteAction(agent, action, ExecutionStatus.NotPossible);
                 return ExecutionStatus.NotPossible;
             }
         }
@@ -245,14 +245,8 @@ namespace MountainGoap {
             }
         }
 
-        private static ExecutionStatus DefaultExecutorCallback(Agent agent, ExecutingAction action) {
+        private static ExecutionStatus DefaultExecutorCallback(Agent agent, IAction action) {
             return ExecutionStatus.Failed;
         }
-
-#pragma warning disable S1172 // Unused method parameters should be removed
-        private static float DefaultCostCallback(ExecutingAction action, IReadOnlyState currentState) {
-            return action.Template.cost;
-        }
-#pragma warning restore S1172 // Unused method parameters should be removed
     }
 }
