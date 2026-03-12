@@ -1,9 +1,8 @@
-﻿// <copyright file="ActionGraph.cs" company="Chris Muller">
+// <copyright file="ActionGraph.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
 
     /// <summary>
@@ -11,7 +10,7 @@ namespace MountainGoap {
     /// </summary>
     internal class ActionGraph {
         /// <summary>
-        /// The set of actions for the graph.
+        /// The set of action template nodes for the graph.
         /// </summary>
         internal List<ActionNode> ActionNodes = new();
 
@@ -19,11 +18,12 @@ namespace MountainGoap {
         /// Initializes a new instance of the <see cref="ActionGraph"/> class.
         /// </summary>
         /// <param name="actions">List of actions to include in the graph.</param>
-        /// <param name="state">Initial state to be used.</param>
-        internal ActionGraph(List<Action> actions, ConcurrentDictionary<string, object?> state) {
+        /// <param name="baseState">Shared base state snapshot for this planning pass.</param>
+        /// <param name="pool">Planning state pool to use for template node states.</param>
+        internal ActionGraph(List<Action> actions, IPlanningBaseState baseState) {
             foreach (var action in actions) {
-                var permutations = action.GetPermutations(state);
-                foreach (var permutation in permutations) ActionNodes.Add(new(action, state, permutation));
+                var permutations = action.GetPermutations(baseState);
+                foreach (var permutation in permutations) ActionNodes.Add(new(action, baseState.Snapshot(), permutation));
             }
         }
 
@@ -35,11 +35,13 @@ namespace MountainGoap {
         internal IEnumerable<ActionNode> Neighbors(ActionNode node) {
             foreach (var otherNode in ActionNodes) {
                 if (otherNode.Action is not null && otherNode.Action.IsPossible(node.State)) {
-                    var newNode = new ActionNode(otherNode.Action.Copy(), node.State.Copy(), otherNode.Parameters.Copy());
+                    var newState = node.State.Snapshot();
+                    var newNode = new ActionNode(otherNode.Action.Copy(), newState, otherNode.Parameters.Copy());
                     newNode.Action?.ApplyEffects(newNode.State);
                     yield return newNode;
                 }
             }
         }
+
     }
 }

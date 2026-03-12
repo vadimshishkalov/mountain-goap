@@ -4,7 +4,6 @@
 
 #pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
 namespace MountainGoap {
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
 
     /// <summary>
@@ -18,7 +17,7 @@ namespace MountainGoap {
         /// <param name="values">Set of values to be included in permutations.</param>
         /// <returns>A lambda function that returns all elements from the collection passed in.</returns>
         public static PermutationSelectorCallback SelectFromCollection<T>(IEnumerable<T> values) {
-            return (ConcurrentDictionary<string, object?> state) => {
+            return (IReadOnlyState state) => {
                 List<object> output = new();
                 foreach (var item in values) if (item is not null) output.Add(item);
                 return output;
@@ -32,7 +31,7 @@ namespace MountainGoap {
         /// <param name="key">Key of the state to check for the collection.</param>
         /// <returns>A lambda function that returns all elements from the collection in the state.</returns>
         public static PermutationSelectorCallback SelectFromCollectionInState<T>(string key) {
-            return (ConcurrentDictionary<string, object?> state) => {
+            return (IReadOnlyState state) => {
                 List<object> output = new();
                 if (state[key] is not IEnumerable<T> values) return output;
                 foreach (var item in values) if (item is not null) output.Add(item);
@@ -47,7 +46,7 @@ namespace MountainGoap {
         /// <param name="upperBound">Upper bound, non-inclusive.</param>
         /// <returns>A lambda function that returns all elements in the range given.</returns>
         public static PermutationSelectorCallback SelectFromIntegerRange(int lowerBound, int upperBound) {
-            return (ConcurrentDictionary<string, object?> state) => {
+            return (IReadOnlyState state) => {
                 List<object> output = new();
                 for (int i = lowerBound; i < upperBound; i++) output.Add(i);
                 return output;

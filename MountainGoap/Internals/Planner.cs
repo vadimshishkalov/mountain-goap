@@ -22,10 +22,11 @@ namespace MountainGoap {
             ActionNode? cursor;
             ActionAStar? bestAstar = null;
             BaseGoal? bestGoal = null;
+            var baseState = agent.State.Snapshot();
             foreach (var goal in agent.Goals) {
                 Agent.TriggerOnPlanningStartedForSingleGoal(agent, goal);
-                ActionGraph graph = new(agent.Actions, agent.State);
-                ActionNode start = new(null, agent.State, new());
+                ActionGraph graph = new(agent.Actions, baseState);
+                ActionNode start = new(null, baseState.Snapshot(), new());
                 astar = new(graph, start, goal, costMaximum, stepMaximum);
                 cursor = astar.FinalPoint;
                 if (cursor is not null && astar.CostSoFar[cursor] == 0) Agent.TriggerOnPlanningFinishedForSingleGoal(agent, goal, 0);
@@ -42,6 +43,7 @@ namespace MountainGoap {
                 Agent.TriggerOnPlanningFinished(agent, bestGoal, bestPlanUtility);
             }
             else Agent.TriggerOnPlanningFinished(agent, null, 0);
+            baseState.Dispose();
             agent.IsPlanning = false;
         }
 
