@@ -11,7 +11,7 @@ namespace MountainGoap {
     /// Per-agent A* search over an action graph. This object is long-lived and owned by the
     /// agent's <see cref="Planner"/>. Call <see cref="Search"/> to run a planning pass; internal
     /// data structures are cleared and reused between passes. All lifecycle (node/action pooling)
-    /// is delegated to the <see cref="ActionGraph"/> passed to <see cref="Search"/>.
+    /// is delegated to the <see cref="ActionGraph"/> and <see cref="ActionPlan"/> passed in.
     /// </summary>
     internal class ActionAStar {
         private readonly FastPriorityQueue<ActionNode> frontier = new(100000);
@@ -21,25 +21,20 @@ namespace MountainGoap {
         private BaseGoal? currentGoal;
 
         /// <summary>
-        /// Ordered list of actions in the best plan found by the last <see cref="Search"/> call.
-        /// Empty if no plan was found. Valid until the next <see cref="Search"/> call.
-        /// </summary>
-        internal readonly List<ExecutingAction> Path = new();
-
-        /// <summary>
-        /// Cost of the plan in <see cref="Path"/>. Zero if no plan was found.
+        /// Cost of the plan filled into the last <see cref="Search"/> call's <see cref="ActionPlan"/>.
+        /// Zero if no plan was found.
         /// </summary>
         internal float FinalCost { get; private set; }
 
         /// <summary>
         /// Runs A* search from <paramref name="start"/> toward <paramref name="goal"/>.
-        /// On return, <see cref="Path"/> contains the action sequence (empty if unreachable)
+        /// On return, <paramref name="plan"/> contains the action sequence (empty if unreachable)
         /// and <see cref="FinalCost"/> holds the total plan cost. Node lifecycle is owned by
-        /// <paramref name="graph"/> — this method does not return any nodes to pools.
+        /// <paramref name="graph"/>; action lifecycle is owned by <paramref name="plan"/>.
         /// </summary>
         internal void Search(ActionNode start, BaseGoal goal, ActionGraph graph,
-                             IReadOnlyState baseState, float costMaximum, int stepMaximum) {
-            Path.Clear();
+                             ActionPlan plan, IReadOnlyState baseState,
+                             float costMaximum, int stepMaximum) {
             FinalCost = 0;
             currentGoal = goal;
             ActionNode? finalPoint = null;
@@ -77,7 +72,7 @@ namespace MountainGoap {
 
             if (finalPoint != null) {
                 FinalCost = costSoFar[finalPoint];
-                BuildPath(finalPoint);
+                BuildPath(finalPoint, plan, cameFrom);
             }
 
             costSoFar.Clear();
@@ -85,15 +80,16 @@ namespace MountainGoap {
             cameFrom.Clear();
         }
 
-        private void BuildPath(ActionNode finalPoint) {
+        private static void BuildPath(ActionNode finalPoint, ActionPlan plan,
+                                      Dictionary<ActionNode, ActionNode> cameFrom) {
             var cursor = finalPoint;
             while (cursor != null && cursor.Action != null && cameFrom.ContainsKey(cursor)) {
-                Path.Add(cursor.Action);
+                plan.Steps.Add(cursor.Action);
                 var next = cameFrom[cursor]; // capture before mutating hash
                 cursor.Action = null;        // graph.Dispose() will skip null actions
                 cursor = next;
             }
-            Path.Reverse();
+            plan.Steps.Reverse();
         }
 
         private static float Heuristic(ActionNode actionNode, BaseGoal goal, ActionNode current) {
