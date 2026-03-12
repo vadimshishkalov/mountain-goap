@@ -4,7 +4,6 @@
 
 namespace MountainGoap {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading;
 
@@ -37,6 +36,7 @@ namespace MountainGoap {
             if (sensors != null) Sensors = sensors;
             CostMaximum = costMaximum;
             StepMaximum = stepMaximum;
+            planner = new Planner(Actions, new ActionNodePool());
         }
 
         /// <summary>
@@ -78,6 +78,8 @@ namespace MountainGoap {
         /// Event that fires when the pathfinder evaluates a single node in the action graph.
         /// </summary>
         public static event EvaluatedActionNodeEvent OnEvaluatedActionNode = (node, nodes) => { };
+
+        private readonly Planner planner;
 
         /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
@@ -140,7 +142,7 @@ namespace MountainGoap {
                 StepAsync();
                 return;
             }
-            if (!IsBusy) Planner.Plan(this, CostMaximum, StepMaximum);
+            if (!IsBusy) planner.Plan(this, CostMaximum, StepMaximum);
             if (mode == StepMode.OneAction) Execute();
             else if (mode == StepMode.AllActions) while (IsBusy) Execute();
         }
@@ -158,7 +160,7 @@ namespace MountainGoap {
         public void Plan() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                Planner.Plan(this, CostMaximum, StepMaximum);
+                planner.Plan(this, CostMaximum, StepMaximum);
             }
         }
 
@@ -168,7 +170,7 @@ namespace MountainGoap {
         public void PlanAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { Planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
                 t.Start();
             }
         }
@@ -231,7 +233,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="node">Action node being evaluated.</param>
         /// <param name="nodes">List of nodes in the path that led to this point.</param>
-        internal static void TriggerOnEvaluatedActionNode(ActionNode node, ConcurrentDictionary<ActionNode, ActionNode> nodes) {
+        internal static void TriggerOnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
             OnEvaluatedActionNode(node, nodes);
         }
 
@@ -241,7 +243,7 @@ namespace MountainGoap {
         private void StepAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { Planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
                 t.Start();
             }
             else if (!IsPlanning) Execute();

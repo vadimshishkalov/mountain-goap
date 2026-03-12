@@ -27,7 +27,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets the immutable template defining this action's behavior.
         /// </summary>
-        internal Action Template { get; }
+        internal Action Template { get; private set; }
 
         /// <summary>
         /// Gets the name of the action (forwarded from template).
@@ -83,5 +83,16 @@ namespace MountainGoap {
         /// Executes a step of work for the agent.
         /// </summary>
         internal ExecutionStatus Execute(Agent agent) => Template.Execute(agent, this);
+
+        /// <summary>
+        /// Reinitializes this instance for reuse from a pool. Copies the provided parameters
+        /// into the existing dictionary to avoid allocation.
+        /// </summary>
+        internal void Reinitialize(Action template, Dictionary<string, object?> parameters) {
+            Template = template;
+            ExecutionStatus = ExecutionStatus.NotYetExecuted;
+            this.parameters.Clear();
+            foreach (var kvp in parameters) this.parameters[kvp.Key] = kvp.Value;
+        }
     }
 }
