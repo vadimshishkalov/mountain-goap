@@ -26,7 +26,7 @@ namespace MountainGoap {
             foreach (var goal in agent.Goals) {
                 Agent.TriggerOnPlanningStartedForSingleGoal(agent, goal);
                 ActionGraph graph = new(agent.Actions, baseState);
-                ActionNode start = new(null, baseState.Snapshot(), new());
+                ActionNode start = new(null, baseState.Snapshot());
                 astar = new(graph, start, goal, costMaximum, stepMaximum);
                 cursor = astar.FinalPoint;
                 if (cursor is not null && astar.CostSoFar[cursor] == 0) Agent.TriggerOnPlanningFinishedForSingleGoal(agent, goal, 0);
@@ -55,7 +55,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that will implement the plan.</param>
         private static void UpdateAgentActionList(ActionNode start, ActionAStar astar, Agent agent) {
             ActionNode? cursor = start;
-            List<Action> actionList = new();
+            List<ExecutingAction> actionList = new();
             while (cursor != null && cursor.Action != null && astar.CameFrom.ContainsKey(cursor)) {
                 actionList.Add(cursor.Action);
                 cursor = astar.CameFrom[cursor];

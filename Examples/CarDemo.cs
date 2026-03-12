@@ -1,4 +1,4 @@
-﻿// <copyright file="CarDemo.cs" company="Chris Muller">
+// <copyright file="CarDemo.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,6 +15,7 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
+            var registry = new ActionRegistry();
             var agent = new Agent(
                 name: "Driving Agent",
                 state: new() {
@@ -34,7 +35,7 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    new(
+                    registry.RegisterAction(
                         name: "Walk",
                         cost: 50,
                         postconditions: new() {
@@ -42,7 +43,7 @@ namespace Examples {
                         },
                         executor: TravelExecutor
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Drive",
                         cost: 5,
                         preconditions: new() {
@@ -53,7 +54,7 @@ namespace Examples {
                         },
                         executor: TravelExecutor
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Get in Car",
                         cost: 1,
                         preconditions: new() {
@@ -68,11 +69,11 @@ namespace Examples {
             while (agent.State["distanceTraveled"] is int distance && distance < 50) agent.Step();
         }
 
-        private static ExecutionStatus TravelExecutor(Agent agent, Action action) {
+        private static ExecutionStatus TravelExecutor(Agent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus GetInCarExecutor(Agent agent, Action action) {
+        private static ExecutionStatus GetInCarExecutor(Agent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
     }

@@ -1,10 +1,11 @@
-﻿namespace MountainGoapTest {
+namespace MountainGoapTest {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
 
     public class ActionContinuationTests {
         [Fact]
         public void ItCanContinueActions() {
+            var registry = new ActionRegistry();
             var timesExecuted = 0;
             var agent = new Agent(
                 state: new() {
@@ -19,14 +20,14 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", false }
                         },
                         postconditions: new() {
                             { "key", true }
                         },
-                        executor: (Agent agent, Action action) => {
+                        executor: (Agent agent, IAction action) => {
                             timesExecuted++;
                             if (agent.State["progress"] is int progress && progress < 3) {
                                 agent.State["progress"] = progress + 1;

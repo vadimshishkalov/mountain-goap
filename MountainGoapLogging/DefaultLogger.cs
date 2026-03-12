@@ -3,6 +3,7 @@
     using Serilog;
     using Serilog.Core;
     using System.Collections.Concurrent;
+    using System.Linq;
 
     public class DefaultLogger {
         private readonly Logger logger;
@@ -36,7 +37,7 @@
             logger.Information("Evaluating node {node} with {count} nodes leading to it.", node.Action?.Name, cameFromList.Count - 1);
         }
 
-        private void OnPlanUpdated(Agent agent, List<Action> actionList) {
+        private void OnPlanUpdated(Agent agent, List<ExecutingAction> actionList) {
             logger.Information("Agent {agent} has a new plan:", agent.Name);
             var count = 1;
             foreach (var action in actionList) {
@@ -53,14 +54,14 @@
             logger.Information("Agent {agent} is working.", agent.Name);
         }
 
-        private void OnBeginExecuteAction(Agent agent, Action action, Dictionary<string, object?> parameters) {
+        private void OnBeginExecuteAction(Agent agent, IAction action) {
             logger.Information("Agent {agent} began executing action {action}.", agent.Name, action.Name);
-            if (parameters.Count == 0) return;
+            if (!action.ParameterKeys.Any()) return;
             logger.Information("\tAction parameters:");
-            foreach (var kvp in parameters) logger.Information("\t\t{key}: {value}", kvp.Key, kvp.Value);
+            foreach (var key in action.ParameterKeys) logger.Information("\t\t{key}: {value}", key, action.GetParameter(key));
         }
 
-        private void OnFinishExecuteAction(Agent agent, Action action, ExecutionStatus status, Dictionary<string, object?> parameters) {
+        private void OnFinishExecuteAction(Agent agent, IAction action, ExecutionStatus status) {
             logger.Information("Agent {agent} finished executing action {action} with status {status}.", agent.Name, action.Name, status);
         }
 

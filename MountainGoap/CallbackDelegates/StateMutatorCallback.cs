@@ -8,5 +8,5 @@ namespace MountainGoap {
     /// </summary>
     /// <param name="action">Action being executed or evaluated.</param>
     /// <param name="currentState">State as it will be when the action is executed or evaluated.</param>
-    public delegate void StateMutatorCallback(Action action, IState currentState);
+    public delegate void StateMutatorCallback(IReadOnlyAction action, IState currentState);
 }

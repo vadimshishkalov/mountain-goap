@@ -1,4 +1,4 @@
-﻿// <copyright file="HappinessIncrementer.cs" company="Chris Muller">
+// <copyright file="HappinessIncrementer.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,6 +15,7 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
+            var registry = new ActionRegistry();
             Agent agent = new(
                 name: "Happiness Agent",
                 state: new() {
@@ -32,7 +33,7 @@ namespace Examples {
                     new(EnnuiSensorHandler, "Ennui Sensor")
                 },
                 actions: new() {
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         preconditions: new() {
@@ -47,7 +48,7 @@ namespace Examples {
             while (agent.State["happiness"] is int happiness && happiness != 10) agent.Step();
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, Action action) {
+        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
             int? happiness = agent.State["happiness"] as int?;
             if (happiness != null) {
                 happiness++;

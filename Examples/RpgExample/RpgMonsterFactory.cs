@@ -1,4 +1,4 @@
-﻿// <copyright file="RpgMonsterFactory.cs" company="Chris Muller">
+// <copyright file="RpgMonsterFactory.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -20,6 +20,7 @@ namespace Examples {
         /// <param name="foodPositions">List of positions for food in the world state.</param>
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, List<Vector2> foodPositions) {
+            var registry = new ActionRegistry();
             var agent = RpgCharacterFactory.Create(agents, $"Monster {counter++}");
             Goal eatFood = new(
                 name: "Eat Food",
@@ -30,7 +31,7 @@ namespace Examples {
             );
             Sensor seeFoodSensor = new(SeeFoodSensorHandler, "Food Sight Sensor");
             Sensor foodProximitySensor = new(FoodProximitySensorHandler, "Food Proximity Sensor");
-            Action lookForFood = new(
+            var lookForFood = registry.RegisterAction(
                 name: "Look For Food",
                 executor: LookForFoodExecutor,
                 preconditions: new() {
@@ -41,7 +42,7 @@ namespace Examples {
                     { "canSeeFood", true }
                 }
             );
-            Action goToFood = new(
+            var goToFood = registry.RegisterAction(
                 name: "Go To Food",
                 executor: GoToFoodExecutor,
                 preconditions: new() {
@@ -57,7 +58,7 @@ namespace Examples {
                 },
                 costCallback: RpgUtils.GoToFoodCost
             );
-            Action eat = new(
+            var eat = registry.RegisterAction(
                 name: "Eat",
                 executor: EatExecutor,
                 preconditions: new() {
@@ -110,7 +111,7 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus LookForFoodExecutor(Agent agent, Action action) {
+        private static ExecutionStatus LookForFoodExecutor(Agent agent, IAction action) {
             if (agent.State["position"] is Vector2 position) {
                 position.X += Rng.Next(-1, 2);
                 position.X = Math.Clamp(position.X, 0, RpgExample.MaxX - 1);
@@ -122,7 +123,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus GoToFoodExecutor(Agent agent, Action action) {
+        private static ExecutionStatus GoToFoodExecutor(Agent agent, IAction action) {
             if (action.GetParameter("target") is Vector2 foodPosition && agent.State["position"] is Vector2 position) {
                 position = RpgUtils.MoveTowardsOtherPosition(position, foodPosition);
                 agent.State["position"] = position;
@@ -131,7 +132,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus EatExecutor(Agent agent, Action action) {
+        private static ExecutionStatus EatExecutor(Agent agent, IAction action) {
             if (agent.State["foodPositions"] is List<Vector2> foodPositions && agent.State["position"] is Vector2 position) {
                 var foodPosition = GetFoodInRange(position, foodPositions, 1f);
                 if (foodPosition != null) {

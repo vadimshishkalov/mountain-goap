@@ -1,4 +1,4 @@
-﻿// <copyright file="Action.cs" company="Chris Muller">
+// <copyright file="Action.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 namespace MountainGoap {
@@ -8,7 +8,7 @@ namespace MountainGoap {
     using System.Reflection;
 
     /// <summary>
-    /// Represents an action in a GOAP system.
+    /// Defines the immutable design-time definition of an action, shared across agents.
     /// </summary>
     public class Action {
         /// <summary>
@@ -36,30 +36,35 @@ namespace MountainGoap {
         /// </summary>
         private readonly CostCallback costCallback;
 
+        private static readonly Dictionary<string, object?> EmptyObjectNullableDict = new();
+        private static readonly Dictionary<string, ComparisonValuePair> EmptyComparisonDict = new();
+        private static readonly Dictionary<string, object> EmptyObjectDict = new();
+        private static readonly Dictionary<string, string> EmptyStringDict = new();
+
         /// <summary>
         /// Preconditions for the action. These things are required for the action to execute.
         /// </summary>
-        private readonly Dictionary<string, object?> preconditions = new();
+        private readonly Dictionary<string, object?> preconditions;
 
         /// <summary>
-        /// Comnparative preconditions for the action. Indicates that a value must be greater than or less than a certain value for the action to execute.
+        /// Comparative preconditions for the action. Indicates that a value must be greater than or less than a certain value for the action to execute.
         /// </summary>
-        private readonly Dictionary<string, ComparisonValuePair> comparativePreconditions = new();
+        private readonly Dictionary<string, ComparisonValuePair> comparativePreconditions;
 
         /// <summary>
         /// Postconditions for the action. These will be set when the action has executed.
         /// </summary>
-        private readonly Dictionary<string, object?> postconditions = new();
+        private readonly Dictionary<string, object?> postconditions;
 
         /// <summary>
         /// Arithmetic postconditions for the action. These will be added to the current value when the action has executed.
         /// </summary>
-        private readonly Dictionary<string, object> arithmeticPostconditions = new();
+        private readonly Dictionary<string, object> arithmeticPostconditions;
 
         /// <summary>
         /// Parameter postconditions for the action. When the action has executed, the value of the parameter given in the key will be copied to the state with the name given in the value.
         /// </summary>
-        private readonly Dictionary<string, string> parameterPostconditions = new();
+        private readonly Dictionary<string, string> parameterPostconditions;
 
         /// <summary>
         /// State mutator for modifying state programmatically after action execution or evaluation.
@@ -70,11 +75,6 @@ namespace MountainGoap {
         /// State checker for checking state programmatically before action execution or evaluation.
         /// </summary>
         private readonly StateCheckerCallback? stateChecker;
-
-        /// <summary>
-        /// Parameters to be passed to the action.
-        /// </summary>
-        private Dictionary<string, object?> parameters = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Action"/> class.
@@ -92,21 +92,20 @@ namespace MountainGoap {
         /// <param name="stateMutator">Callback for modifying state after action execution or evaluation.</param>
         /// <param name="stateChecker">Callback for checking state before action execution or evaluation.</param>
         /// <param name="stateCostDeltaMultiplier">Callback for multiplier for delta value to provide delta cost.</param>
+        [Obsolete("Use ActionRegistry.RegisterAction instead.")]
         public Action(string? name = null, Dictionary<string, PermutationSelectorCallback>? permutationSelectors = null, ExecutorCallback? executor = null, float cost = 1f, CostCallback? costCallback = null, Dictionary<string, object?>? preconditions = null, Dictionary<string, ComparisonValuePair>? comparativePreconditions = null, Dictionary<string, object?>? postconditions = null, Dictionary<string, object>? arithmeticPostconditions = null, Dictionary<string, string>? parameterPostconditions = null, StateMutatorCallback? stateMutator = null, StateCheckerCallback? stateChecker = null, StateCostDeltaMultiplierCallback? stateCostDeltaMultiplier = null) {
-            if (permutationSelectors == null) this.permutationSelectors = new();
-            else this.permutationSelectors = permutationSelectors;
-            if (executor == null) this.executor = DefaultExecutorCallback;
-            else this.executor = executor;
+            this.permutationSelectors = permutationSelectors ?? new();
+            this.executor = executor ?? DefaultExecutorCallback;
             Name = name ?? $"Action {Guid.NewGuid()} ({this.executor.GetMethodInfo().Name})";
             this.cost = cost;
-            this.costCallback = costCallback ?? DefaultCostCallback;
-            if (preconditions != null) this.preconditions = preconditions;
-            if (comparativePreconditions != null) this.comparativePreconditions = comparativePreconditions;
-            if (postconditions != null) this.postconditions = postconditions;
-            if (arithmeticPostconditions != null) this.arithmeticPostconditions = arithmeticPostconditions;
-            if (parameterPostconditions != null) this.parameterPostconditions = parameterPostconditions;
-            if (stateMutator != null) this.stateMutator = stateMutator;
-            if (stateChecker != null) this.stateChecker = stateChecker;
+            this.costCallback = costCallback ?? ((_, _) => this.cost);
+            this.preconditions = preconditions ?? EmptyObjectNullableDict;
+            this.comparativePreconditions = comparativePreconditions ?? EmptyComparisonDict;
+            this.postconditions = postconditions ?? EmptyObjectNullableDict;
+            this.arithmeticPostconditions = arithmeticPostconditions ?? EmptyObjectDict;
+            this.parameterPostconditions = parameterPostconditions ?? EmptyStringDict;
+            this.stateMutator = stateMutator;
+            this.stateChecker = stateChecker;
             StateCostDeltaMultiplier = stateCostDeltaMultiplier ?? DefaultStateCostDeltaMultiplier;
         }
 
@@ -115,61 +114,27 @@ namespace MountainGoap {
         /// </summary>
         public StateCostDeltaMultiplierCallback? StateCostDeltaMultiplier { get; set; }
 
-        public static float DefaultStateCostDeltaMultiplier(Action? action, string stateKey) => 1f;
+        /// <summary>
+        /// Default multiplier callback returning 1 for all state keys.
+        /// </summary>
+        public static float DefaultStateCostDeltaMultiplier(IReadOnlyAction? action, string stateKey) => 1f;
 
         /// <summary>
         /// Event that triggers when an action begins executing.
         /// </summary>
-        public static event BeginExecuteActionEvent OnBeginExecuteAction = (agent, action, parameters) => { };
+        public static event BeginExecuteActionEvent OnBeginExecuteAction = (agent, action) => { };
 
         /// <summary>
         /// Event that triggers when an action finishes executing.
         /// </summary>
-        public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status, parameters) => { };
+        public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status) => { };
 
         /// <summary>
-        /// Gets or sets the execution status of the action.
+        /// Gets the cost of the action for the given runtime action and state.
         /// </summary>
-        internal ExecutionStatus ExecutionStatus { get; set; } = ExecutionStatus.NotYetExecuted;
-
-        /// <summary>
-        /// Makes a copy of the action.
-        /// </summary>
-        /// <returns>A copy of the action.</returns>
-        public Action Copy() {
-            var newAction = new Action(Name, permutationSelectors, executor, cost, costCallback, preconditions.Copy(), comparativePreconditions.Copy(), postconditions.Copy(), arithmeticPostconditions.CopyNonNullable(), parameterPostconditions.Copy(), stateMutator, stateChecker, StateCostDeltaMultiplier) {
-                parameters = parameters.Copy()
-            };
-            return newAction;
-        }
-
-        /// <summary>
-        /// Sets a parameter to the action.
-        /// </summary>
-        /// <param name="key">Key to be set.</param>
-        /// <param name="value">Value to be set.</param>
-        public void SetParameter(string key, object value) {
-            parameters[key] = value;
-        }
-
-        /// <summary>
-        /// Gets a parameter to the action.
-        /// </summary>
-        /// <param name="key">Key for the value to be retrieved.</param>
-        /// <returns>The value stored at the key specified.</returns>
-        public object? GetParameter(string key) {
-            if (parameters.ContainsKey(key)) return parameters[key];
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the cost of the action.
-        /// </summary>
-        /// <param name="currentState">State as it will be when cost is relevant.</param>
-        /// <returns>The cost of the action.</returns>
-        public float GetCost(IReadOnlyState currentState) {
+        internal float GetCost(ExecutingAction action, IReadOnlyState currentState) {
             try {
-                return costCallback(this, currentState);
+                return costCallback(action, currentState);
             }
             catch {
                 return float.MaxValue;
@@ -177,21 +142,19 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Executes a step of work for the agent.
+        /// Executes the action for the given agent and runtime action instance.
         /// </summary>
-        /// <param name="agent">Agent executing the action.</param>
-        /// <returns>The execution status of the action.</returns>
-        internal ExecutionStatus Execute(Agent agent) {
-            OnBeginExecuteAction(agent, this, parameters);
-            if (IsPossible(agent.State)) {
-                var newState = executor(agent, this);
-                if (newState == ExecutionStatus.Succeeded) ApplyEffects(agent.State);
-                ExecutionStatus = newState;
-                OnFinishExecuteAction(agent, this, ExecutionStatus, parameters);
+        internal ExecutionStatus Execute(Agent agent, ExecutingAction action) {
+            OnBeginExecuteAction(agent, action);
+            if (IsPossible(action, agent.State)) {
+                var newState = executor(agent, action);
+                if (newState == ExecutionStatus.Succeeded) ApplyEffects(action, agent.State);
+                action.ExecutionStatus = newState;
+                OnFinishExecuteAction(agent, action, action.ExecutionStatus);
                 return newState;
             }
             else {
-                OnFinishExecuteAction(agent, this, ExecutionStatus.NotPossible, parameters);
+                OnFinishExecuteAction(agent, action, ExecutionStatus.NotPossible);
                 return ExecutionStatus.NotPossible;
             }
         }
@@ -199,9 +162,7 @@ namespace MountainGoap {
         /// <summary>
         /// Determines whether or not an action is possible.
         /// </summary>
-        /// <param name="state">The current world state.</param>
-        /// <returns>True if the action is possible, otherwise false.</returns>
-        internal bool IsPossible(IReadOnlyState state) {
+        internal bool IsPossible(ExecutingAction action, IReadOnlyState state) {
             foreach (var kvp in preconditions) {
                 if (!state.ContainsKey(kvp.Key)) return false;
                 if (state[kvp.Key] == null && state[kvp.Key] != kvp.Value) return false;
@@ -219,15 +180,13 @@ namespace MountainGoap {
                 }
                 else return false;
             }
-            if (stateChecker?.Invoke(this, state) == false) return false;
+            if (stateChecker?.Invoke(action, state) == false) return false;
             return true;
         }
 
         /// <summary>
-        /// Gets all permutations of parameters possible for an action.
+        /// Gets all permutations of parameters possible for this action.
         /// </summary>
-        /// <param name="state">World state when the action would be performed.</param>
-        /// <returns>A list of possible parameter dictionaries that could be used.</returns>
         internal List<Dictionary<string, object?>> GetPermutations(IReadOnlyState state) {
             List<Dictionary<string, object?>> combinedOutputs = new();
             Dictionary<string, List<object>> outputs = new();
@@ -253,10 +212,9 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Applies the effects of the action.
+        /// Applies the effects of the action to the given state.
         /// </summary>
-        /// <param name="state">World state to which to apply effects.</param>
-        internal void ApplyEffects(IState state) {
+        internal void ApplyEffects(ExecutingAction action, IState state) {
             foreach (var kvp in postconditions) state.Set(kvp.Key, kvp.Value);
             foreach (var kvp in arithmeticPostconditions) {
                 if (!state.ContainsKey(kvp.Key)) continue;
@@ -268,18 +226,11 @@ namespace MountainGoap {
                 else if (state[kvp.Key] is DateTime stateDateTime && kvp.Value is TimeSpan conditionTimeSpan) state.Set(kvp.Key, stateDateTime + conditionTimeSpan);
             }
             foreach (var kvp in parameterPostconditions) {
-                if (!parameters.ContainsKey(kvp.Key)) continue;
-                state.Set(kvp.Value, parameters[kvp.Key]);
+                var paramVal = action.GetParameter(kvp.Key);
+                if (paramVal == null) continue;
+                state.Set(kvp.Value, paramVal);
             }
-            stateMutator?.Invoke(this, state);
-        }
-
-        /// <summary>
-        /// Sets all parameters to the action.
-        /// </summary>
-        /// <param name="parameters">Dictionary of parameters to be passed to the action.</param>
-        internal void SetParameters(Dictionary<string, object?> parameters) {
-            this.parameters = parameters;
+            stateMutator?.Invoke(action, state);
         }
 
         private static bool IndicesAtMaximum(List<int> indices, List<int> counts) {
@@ -298,20 +249,8 @@ namespace MountainGoap {
             }
         }
 
-        /// <summary>
-        /// Default executor callback to be used if no callback is passed in.
-        /// </summary>
-        /// <param name="agent">Agent executing the action.</param>
-        /// <param name="action">Action to be executed.</param>
-        /// <returns>A Failed status, since the action cannot execute without a callback.</returns>
-        private static ExecutionStatus DefaultExecutorCallback(Agent agent, Action action) {
+        private static ExecutionStatus DefaultExecutorCallback(Agent agent, IAction action) {
             return ExecutionStatus.Failed;
         }
-
-#pragma warning disable S1172 // Unused method parameters should be removed
-        private static float DefaultCostCallback(Action action, IReadOnlyState currentState) {
-            return action.cost;
-        }
-#pragma warning restore S1172 // Unused method parameters should be removed
     }
 }

@@ -1,4 +1,4 @@
-﻿// <copyright file="ExtremeHappinessIncrementer.cs" company="Chris Muller">
+// <copyright file="ExtremeHappinessIncrementer.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,6 +15,7 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
+            var registry = new ActionRegistry();
             Agent agent = new(
                 name: "Happiness Agent",
                 state: new() {
@@ -29,40 +30,31 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         preconditions: new() {
                             { "health", true }
                         },
                         arithmeticPostconditions: new() {
-                            {
-                                "happiness",
-                                1
-                            }
+                            { "happiness", 1 }
                         }
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
                         preconditions: new() {
                             { "health", true }
                         },
                         arithmeticPostconditions: new() {
-                            {
-                                "happiness",
-                                2
-                            }
+                            { "happiness", 2 }
                         }
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Health",
                         executor: SeekHealth,
                         postconditions: new() {
-                            {
-                                "health",
-                                true
-                            }
+                            { "health", true }
                         }
                     ),
                 }
@@ -73,17 +65,17 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, Action action) {
+        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
             Console.WriteLine("Seeking happiness.");
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, Action action) {
+        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, IAction action) {
             Console.WriteLine("Seeking even greater happiness.");
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus SeekHealth(Agent agent, Action action) {
+        private static ExecutionStatus SeekHealth(Agent agent, IAction action) {
             Console.WriteLine("Seeking health.");
             return ExecutionStatus.Succeeded;
         }

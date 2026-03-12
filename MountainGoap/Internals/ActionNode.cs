@@ -3,7 +3,6 @@
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using Priority_Queue;
 
@@ -15,13 +14,10 @@ namespace MountainGoap {
         /// Initializes a new instance of the <see cref="ActionNode"/> class.
         /// </summary>
         /// <param name="action">Action to be assigned to the node.</param>
-        /// <param name="state">Planning state to be assigned to the node. Caller is responsible for providing the correct IPlanningStepState.</param>
-        /// <param name="parameters">Parameters to be passed to the action in the node.</param>
-        internal ActionNode(Action? action, IPlanningStepState state, Dictionary<string, object?> parameters) {
-            if (action != null) Action = action.Copy();
+        /// <param name="state">Planning state to be assigned to the node.</param>
+        internal ActionNode(ExecutingAction? action, IPlanningStepState state) {
+            Action = action;
             State = state;
-            Parameters = parameters.Copy();
-            Action?.SetParameters(Parameters);
         }
 
         /// <summary>
@@ -30,14 +26,9 @@ namespace MountainGoap {
         public IPlanningStepState State { get; set; }
 
         /// <summary>
-        /// Gets or sets parameters to be passed to the action.
-        /// </summary>
-        public Dictionary<string, object?> Parameters { get; set; }
-
-        /// <summary>
         /// Gets or sets the action to be executed when the world is in the defined <see cref="State"/>.
         /// </summary>
-        public Action? Action { get; set; }
+        public ExecutingAction? Action { get; set; }
 
 #pragma warning disable S3875 // "operator==" should not be overloaded on reference types
         /// <summary>
@@ -76,7 +67,7 @@ namespace MountainGoap {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = 629302477;
-            if (Action != null) hashCode = (hashCode * -1521134295) + EqualityComparer<Action>.Default.GetHashCode(Action);
+            if (Action != null) hashCode = (hashCode * -1521134295) + EqualityComparer<ExecutingAction>.Default.GetHashCode(Action);
             else hashCode *= -1521134295;
             hashCode = (hashCode * -1521134295) + EqualityComparer<IPlanningStepState>.Default.GetHashCode(State);
             return hashCode;

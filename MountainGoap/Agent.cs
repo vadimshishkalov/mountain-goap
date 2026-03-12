@@ -82,7 +82,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
         /// </summary>
-        public List<List<Action>> CurrentActionSequences { get; } = new();
+        public List<List<ExecutingAction>> CurrentActionSequences { get; } = new();
 
         /// <summary>
         /// Gets or sets the current world state from the agent perspective.
@@ -222,7 +222,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="agent">Agent for which the plan was updated.</param>
         /// <param name="actionList">New action list for the agent.</param>
-        internal static void TriggerOnPlanUpdated(Agent agent, List<Action> actionList) {
+        internal static void TriggerOnPlanUpdated(Agent agent, List<ExecutingAction> actionList) {
             OnPlanUpdated(agent, actionList);
         }
 
@@ -252,7 +252,7 @@ namespace MountainGoap {
         /// </summary>
         private void Execute() {
             if (CurrentActionSequences.Count > 0) {
-                List<List<Action>> cullableSequences = new();
+                List<List<ExecutingAction>> cullableSequences = new();
                 foreach (var sequence in CurrentActionSequences) {
                     if (sequence.Count > 0) {
                         var executionStatus = sequence[0].Execute(this);

@@ -9,5 +9,5 @@ namespace MountainGoap {
     /// <param name="action">Action being executed.</param>
     /// <param name="currentState">State as it will be when cost is relevant.</param>
     /// <returns>Cost of the action.</returns>
-    public delegate float CostCallback(Action action, IReadOnlyState currentState);
+    public delegate float CostCallback(IReadOnlyAction action, IReadOnlyState currentState);
 }
