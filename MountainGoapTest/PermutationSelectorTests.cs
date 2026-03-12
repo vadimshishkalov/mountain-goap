@@ -1,9 +1,10 @@
-﻿namespace MountainGoapTest {
+namespace MountainGoapTest {
     using System.Collections.Generic;
 
     public class PermutationSelectorTests {
         [Fact]
         public void ItSelectsFromADynamicallyGeneratedCollectionInState() {
+            var registry = new ActionRegistry();
             var collection = new List<int> { 1, 2, 3 };
             var selector = PermutationSelectorGenerators.SelectFromCollectionInState<int>("collection");
             var agent = new Agent(
@@ -21,7 +22,7 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         name: "sample action",
                         cost: 1f,
                         preconditions: new() {

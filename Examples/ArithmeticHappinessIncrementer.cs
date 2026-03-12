@@ -1,4 +1,4 @@
-﻿// <copyright file="ArithmeticHappinessIncrementer.cs" company="Chris Muller">
+// <copyright file="ArithmeticHappinessIncrementer.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,6 +15,7 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
+            var registry = new ActionRegistry();
             Agent agent = new(
                 name: "Happiness Agent",
                 state: new() {
@@ -28,24 +29,18 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         arithmeticPostconditions: new() {
-                            {
-                                "happiness",
-                                1
-                            }
+                            { "happiness", 1 }
                         }
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
                         arithmeticPostconditions: new() {
-                            {
-                                "happiness",
-                                2
-                            }
+                            { "happiness", 2 }
                         }
                     )
                 }
@@ -56,12 +51,12 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, Action action) {
+        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
             Console.WriteLine("Seeking happiness.");
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, Action action) {
+        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, IAction action) {
             Console.WriteLine("Seeking even greater happiness.");
             return ExecutionStatus.Succeeded;
         }

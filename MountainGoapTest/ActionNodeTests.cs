@@ -1,9 +1,10 @@
-﻿namespace MountainGoapTest {
+namespace MountainGoapTest {
     using System.Collections.Generic;
 
     public class AgentTests {
         [Fact]
         public void ItHandlesInitialNullStateValuesCorrectly() {
+            var registry = new ActionRegistry();
             var agent = new Agent(
                 state: new() {
                     { "key", null }
@@ -16,7 +17,7 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", null }
                         },
@@ -35,6 +36,7 @@
 
         [Fact]
         public void ItHandlesNullGoalsCorrectly() {
+            var registry = new ActionRegistry();
             var agent = new Agent(
                 state: new() {
                     { "key", "non-null value" }
@@ -47,7 +49,7 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "non-null value" }
                         },
@@ -66,6 +68,7 @@
 
         [Fact]
         public void ItHandlesNonNullStateValuesCorrectly() {
+            var registry = new ActionRegistry();
             var agent = new Agent(
                 state: new() {
                     { "key", "value" }
@@ -78,7 +81,7 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -99,6 +102,7 @@
 
         [Fact]
         public void ItExecutesOneActionInOneActionStepMode() {
+            var registry = new ActionRegistry();
             var actionCount = 0;
             var agent = new Agent(
                 state: new() {
@@ -112,7 +116,7 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -132,6 +136,7 @@
 
         [Fact]
         public void ItExecutesAllActionsInAllActionsStepMode() {
+            var registry = new ActionRegistry();
             var actionCount = 0;
             var agent = new Agent(
                 state: new() {
@@ -145,7 +150,8 @@
                     )
                 },
                 actions: new List<Action> {
-                    new Action(
+                    registry.RegisterAction(
+                        name: "Step 1",
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -157,7 +163,8 @@
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    new Action(
+                    registry.RegisterAction(
+                        name: "Step 2",
                         preconditions: new() {
                             { "key", "intermediate value" }
                         },

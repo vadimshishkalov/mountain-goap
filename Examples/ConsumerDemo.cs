@@ -1,4 +1,4 @@
-﻿// <copyright file="ConsumerDemo.cs" company="Chris Muller">
+// <copyright file="ConsumerDemo.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -15,6 +15,7 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
+            var registry = new ActionRegistry();
             var locations = new List<string> { "home", "work", "store" };
             var agent = new Agent(
                 name: "Consumer Agent",
@@ -39,7 +40,7 @@ namespace Examples {
                         }),
                 },
                 actions: new() {
-                    new(
+                    registry.RegisterAction(
                         name: "Walk",
                         cost: 6f,
                         executor: GenericExecutor,
@@ -59,7 +60,7 @@ namespace Examples {
                             { "location", "location" }
                         }
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Drive",
                         cost: 1f,
                         preconditions: new() {
@@ -83,7 +84,7 @@ namespace Examples {
                             { "justTraveled", true }
                         }
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Get in car",
                         cost: 1f,
                         preconditions: new() {
@@ -101,7 +102,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Get out of car",
                         cost: 1f,
                         preconditions: new() {
@@ -118,7 +119,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Work",
                         cost: 1f,
                         preconditions: new() {
@@ -137,7 +138,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    new(
+                    registry.RegisterAction(
                         name: "Shop",
                         cost: 1f,
                         preconditions: new() {
@@ -162,7 +163,7 @@ namespace Examples {
             while (agent.State["food"] is int food && food < 5) agent.Step();
         }
 
-        private static ExecutionStatus GenericExecutor(Agent agent, Action action) {
+        private static ExecutionStatus GenericExecutor(Agent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
     }

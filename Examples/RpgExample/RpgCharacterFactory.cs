@@ -1,4 +1,4 @@
-﻿// <copyright file="RpgCharacterFactory.cs" company="Chris Muller">
+// <copyright file="RpgCharacterFactory.cs" company="Chris Muller">
 // Copyright (c) Chris Muller. All rights reserved.
 // </copyright>
 
@@ -17,6 +17,7 @@ namespace Examples {
         /// <param name="name">Name of the character.</param>
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, string name = "Player") {
+            var registry = new ActionRegistry();
             Goal removeEnemies = new(
                 name: "Remove Enemies",
                 weight: 1f,
@@ -26,7 +27,7 @@ namespace Examples {
             );
             Sensor seeEnemiesSensor = new(SeeEnemiesSensorHandler, "Enemy Sight Sensor");
             Sensor enemyProximitySensor = new(EnemyProximitySensorHandler, "Enemy Proximity Sensor");
-            Action goToEnemy = new(
+            var goToEnemy = registry.RegisterAction(
                 name: "Go To Enemy",
                 executor: GoToEnemyExecutor,
                 preconditions: new() {
@@ -42,7 +43,7 @@ namespace Examples {
                 },
                 costCallback: RpgUtils.GoToEnemyCost
             );
-            Action killNearbyEnemy = new(
+            var killNearbyEnemy = registry.RegisterAction(
                 name: "Kill Nearby Enemy",
                 executor: KillNearbyEnemyExecutor,
                 preconditions: new() {
@@ -95,7 +96,7 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus KillNearbyEnemyExecutor(Agent agent, Action action) {
+        private static ExecutionStatus KillNearbyEnemyExecutor(Agent agent, IAction action) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 1f);
                 if (agent2 != null && agent2.State["hp"] is int hp) {
@@ -107,7 +108,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus GoToEnemyExecutor(Agent agent, Action action) {
+        private static ExecutionStatus GoToEnemyExecutor(Agent agent, IAction action) {
             if (action.GetParameter("target") is not Agent target) return ExecutionStatus.Failed;
             if (agent.State["position"] is Vector2 pos1 && target.State["position"] is Vector2 pos2) {
                 var newPos = RpgUtils.MoveTowardsOtherPosition(pos1, pos2);

@@ -94,7 +94,7 @@ namespace Examples {
         /// <param name="state">State as it will be when cost is relevant.</param>
         /// <returns>The cost of the action.</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        internal static float GoToEnemyCost(Action action, IReadOnlyState state) {
+        internal static float GoToEnemyCost(IReadOnlyAction action, IReadOnlyState state) {
             if (action.GetParameter("startingPosition") is not Vector2 startingPosition || action.GetParameter("target") is not Agent target) return float.MaxValue;
             if (target.State["position"] is not Vector2 targetPosition) return float.MaxValue;
             return Distance(startingPosition, targetPosition);
@@ -108,7 +108,7 @@ namespace Examples {
         /// /// <param name="state">State as it will be when cost is relevant.</param>
         /// <returns>The cost of the action.</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        internal static float GoToFoodCost(Action action, IReadOnlyState state) {
+        internal static float GoToFoodCost(IReadOnlyAction action, IReadOnlyState state) {
             if (action.GetParameter("startingPosition") is not Vector2 startingPosition || action.GetParameter("target") is not Vector2 targetPosition) return float.MaxValue;
             return Distance(startingPosition, targetPosition);
         }

@@ -1,8 +1,4 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MountainGoapTest
 {
@@ -11,6 +7,7 @@ namespace MountainGoapTest
         [Fact]
         public void MinimalExampleTest()
         {
+            var registry = new MountainGoap.ActionRegistry();
 
             List<BaseGoal> goals = new() {
                 new ComparativeGoal(
@@ -26,7 +23,7 @@ namespace MountainGoapTest
             };
 
             List<MountainGoap.Action> actions = new() {
-                new MountainGoap.Action(
+                registry.RegisterAction(
                     name: "Action1",
                     executor: (Agent agent, MountainGoap.IAction action) => {
                         return ExecutionStatus.Succeeded;
