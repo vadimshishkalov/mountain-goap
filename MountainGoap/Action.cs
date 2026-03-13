@@ -28,6 +28,11 @@ namespace MountainGoap {
         // Permutation key array — fixed at construction, safe to share across threads.
         private readonly string[] _permKeys;
 
+        // Materialised key sets — fixed at construction, avoids yield-return enumerator allocations.
+        // HashSet<T>.GetEnumerator() returns a struct enumerator — zero heap allocation in foreach.
+        private readonly HashSet<string> _preconditionKeys;
+        private readonly HashSet<string> _postconditionKeys;
+
         /// <summary>
         /// The executor callback for the action.
         /// </summary>
@@ -112,6 +117,19 @@ namespace MountainGoap {
             this.stateMutator = stateMutator;
             this.stateChecker = stateChecker;
             StateCostDeltaMultiplier = stateCostDeltaMultiplier ?? DefaultStateCostDeltaMultiplier;
+
+            _preconditionKeys = CollectKeys(this.preconditions.Keys, this.comparativePreconditions.Keys);
+            _postconditionKeys = CollectKeys(this.postconditions.Keys, this.arithmeticPostconditions.Keys, this.parameterPostconditions.Values);
+        }
+
+        private static readonly HashSet<string> EmptyKeySet = new();
+
+        private static HashSet<string> CollectKeys(params IEnumerable<string>[] sources) {
+            HashSet<string>? set = null;
+            foreach (var s in sources)
+                foreach (var key in s)
+                    (set ??= new HashSet<string>()).Add(key);
+            return set ?? EmptyKeySet;
         }
 
         /// <summary>
@@ -141,27 +159,16 @@ namespace MountainGoap {
         public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status) => { };
 
         /// <summary>
-        /// Gets the state keys referenced by static preconditions. Used by
+        /// Gets the distinct state keys referenced by static preconditions. Used by
         /// <see cref="ActionCollection"/> to build the inverse precondition index.
         /// </summary>
-        internal IEnumerable<string> PreconditionKeys {
-            get {
-                foreach (var key in preconditions.Keys) yield return key;
-                foreach (var key in comparativePreconditions.Keys) yield return key;
-            }
-        }
+        internal IEnumerable<string> PreconditionKeys => _preconditionKeys;
 
         /// <summary>
-        /// Gets the state keys this action writes to via static postconditions.
+        /// Gets the distinct state keys this action writes to via static postconditions.
         /// Does not include keys written by <see cref="stateMutator"/> (unknown at design time).
         /// </summary>
-        internal IEnumerable<string> PostconditionKeys {
-            get {
-                foreach (var key in postconditions.Keys) yield return key;
-                foreach (var key in arithmeticPostconditions.Keys) yield return key;
-                foreach (var key in parameterPostconditions.Values) yield return key;
-            }
-        }
+        internal IEnumerable<string> PostconditionKeys => _postconditionKeys;
 
         /// <summary>
         /// True when a <see cref="stateMutator"/> is set — <see cref="PostconditionKeys"/> is
