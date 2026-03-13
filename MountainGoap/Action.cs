@@ -164,13 +164,8 @@ namespace MountainGoap {
         /// </summary>
         internal bool HasStateMutator => stateMutator != null;
 
-        /// <summary>
-        /// Static precondition check without invoking <see cref="stateChecker"/>. Used to seed
-        /// and incrementally update <see cref="ActionNode.AvailableActions"/>. Returns
-        /// <see langword="true"/> when a stateChecker is present (conservative inclusion —
-        /// the full <see cref="IsPossible"/> check with parameters remains the authoritative gate).
-        /// </summary>
-        internal bool MightBePossible(IReadOnlyState state) => CheckStaticPreconditions(state);
+        internal bool HasStateChecker => stateChecker != null;
+
 
         /// <summary>
         /// Gets the cost of the action for the given runtime action and state.
