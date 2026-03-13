@@ -31,12 +31,15 @@ namespace MountainGoap {
         public ExecutingAction? Action { get; set; }
 
         /// <summary>
-        /// Set of action templates that pass <see cref="Action.MightBePossible"/> for this node's
-        /// state. Permanent field — lives with the node and is cleared when the node is returned
-        /// to <see cref="ActionNodePool"/>. Empty on a freshly rented node (signals unseeded).
-        /// Populated during <see cref="ActionGraph.Neighbors"/> of the parent node.
+        /// Templates confirmed possible by this node or ancestors.
         /// </summary>
-        internal HashSet<MountainGoap.Action> AvailableActions { get; } = new();
+        internal HashSet<MountainGoap.Action> Possible { get; } = new();
+
+        /// <summary>
+        /// Templates not yet checked for this node's state. Promoted to
+        /// <see cref="Possible"/> or discarded during expansion.
+        /// </summary>
+        internal HashSet<MountainGoap.Action> Candidates { get; } = new();
 
 #pragma warning disable S3875 // "operator==" should not be overloaded on reference types
         /// <summary>
