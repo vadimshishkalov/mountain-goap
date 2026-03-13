@@ -4,7 +4,6 @@
 namespace MountainGoap {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Reflection;
 
     /// <summary>
@@ -25,6 +24,9 @@ namespace MountainGoap {
         /// The permutation selector callbacks for the action.
         /// </summary>
         private readonly Dictionary<string, PermutationSelectorCallback> permutationSelectors;
+
+        // Permutation key array — fixed at construction, safe to share across threads.
+        private readonly string[] _permKeys;
 
         /// <summary>
         /// The executor callback for the action.
@@ -95,6 +97,9 @@ namespace MountainGoap {
         [Obsolete("Use ActionRegistry.RegisterAction instead.")]
         public Action(string? name = null, Dictionary<string, PermutationSelectorCallback>? permutationSelectors = null, ExecutorCallback? executor = null, float cost = 1f, CostCallback? costCallback = null, Dictionary<string, object?>? preconditions = null, Dictionary<string, ComparisonValuePair>? comparativePreconditions = null, Dictionary<string, object?>? postconditions = null, Dictionary<string, object>? arithmeticPostconditions = null, Dictionary<string, string>? parameterPostconditions = null, StateMutatorCallback? stateMutator = null, StateCheckerCallback? stateChecker = null, StateCostDeltaMultiplierCallback? stateCostDeltaMultiplier = null) {
             this.permutationSelectors = permutationSelectors ?? new();
+            _permKeys = new string[this.permutationSelectors.Count];
+            int ki = 0;
+            foreach (var key in this.permutationSelectors.Keys) _permKeys[ki++] = key;
             this.executor = executor ?? DefaultExecutorCallback;
             Name = name ?? $"Action {Guid.NewGuid()} ({this.executor.GetMethodInfo().Name})";
             this.cost = cost;
@@ -208,28 +213,48 @@ namespace MountainGoap {
 
         /// <summary>
         /// Gets all permutations of parameters possible for this action.
+        /// Yields permutations lazily using cached scratch buffers — zero per-call allocations.
+        /// The yielded <see cref="Permutation"/> shares a reusable values buffer; consumers
+        /// must copy before advancing the enumerator.
         /// </summary>
-        internal List<Dictionary<string, object?>> GetPermutations(IReadOnlyState state) {
-            List<Dictionary<string, object?>> combinedOutputs = new();
-            Dictionary<string, List<object>> outputs = new();
-            foreach (var kvp in permutationSelectors) outputs[kvp.Key] = kvp.Value(state);
-            var permutationParameters = outputs.Keys.ToList();
-            List<int> indices = new();
-            List<int> counts = new();
-            foreach (var parameter in permutationParameters) {
-                indices.Add(0);
-                if (outputs[parameter].Count == 0) return combinedOutputs;
-                counts.Add(outputs[parameter].Count);
+        internal IEnumerable<Permutation> GetPermutations(IReadOnlyState state) {
+            var n = _permKeys.Length;
+            if (n == 0) {
+                yield return new Permutation(_permKeys, Array.Empty<object?>(), 0);
+                yield break;
             }
+
+            // Local buffers — safe for concurrent callers on the same Action.
+            var values = new List<object>[n];
+            var indices = new int[n];
+            var counts = new int[n];
+            var currentValues = new object?[n];
+
+            for (int i = 0; i < n; i++) {
+                values[i] = permutationSelectors[_permKeys[i]](state);
+                var c = values[i].Count;
+                if (c == 0) yield break;
+                counts[i] = c;
+            }
+
+            var permutation = new Permutation(_permKeys, currentValues, n);
+
             while (true) {
-                var singleOutput = new Dictionary<string, object?>();
-                for (int i = 0; i < indices.Count; i++) {
-                    if (indices[i] >= outputs[permutationParameters[i]].Count) continue;
-                    singleOutput[permutationParameters[i]] = outputs[permutationParameters[i]][indices[i]];
+                for (int i = 0; i < n; i++) {
+                    currentValues[i] = values[i][indices[i]];
                 }
-                combinedOutputs.Add(singleOutput);
-                if (IndicesAtMaximum(indices, counts)) return combinedOutputs;
-                IncrementIndices(indices, counts);
+                yield return permutation;
+
+                int j = 0;
+                while (j < n) {
+                    if (indices[j] < counts[j] - 1) {
+                        indices[j]++;
+                        break;
+                    }
+                    indices[j] = 0;
+                    j++;
+                }
+                if (j == n) yield break;
             }
         }
 
@@ -253,22 +278,6 @@ namespace MountainGoap {
                 state.Set(kvp.Value, paramVal);
             }
             stateMutator?.Invoke(action, state);
-        }
-
-        private static bool IndicesAtMaximum(List<int> indices, List<int> counts) {
-            for (int i = 0; i < indices.Count; i++) if (indices[i] < counts[i] - 1) return false;
-            return true;
-        }
-
-        private static void IncrementIndices(List<int> indices, List<int> counts) {
-            if (IndicesAtMaximum(indices, counts)) return;
-            for (int i = 0; i < indices.Count; i++) {
-                if (indices[i] == counts[i] - 1) indices[i] = 0;
-                else {
-                    indices[i]++;
-                    return;
-                }
-            }
         }
 
         private bool CheckStaticPreconditions(IReadOnlyState state) {

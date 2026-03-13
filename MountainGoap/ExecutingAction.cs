@@ -25,6 +25,17 @@ namespace MountainGoap {
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ExecutingAction"/> class from a <see cref="Permutation"/>.
+        /// </summary>
+        internal ExecutingAction(Action template, Permutation permutation) {
+            Template = template;
+            parameters = new Dictionary<string, object?>(permutation.Count);
+            for (int i = 0; i < permutation.Count; i++) {
+                parameters[permutation.Keys[i]] = permutation.Values[i];
+            }
+        }
+
+        /// <summary>
         /// Gets the immutable template defining this action's behavior.
         /// </summary>
         internal Action Template { get; private set; }
@@ -88,11 +99,13 @@ namespace MountainGoap {
         /// Reinitializes this instance for reuse from a pool. Copies the provided parameters
         /// into the existing dictionary to avoid allocation.
         /// </summary>
-        internal void Reinitialize(Action template, Dictionary<string, object?> parameters) {
+        internal void Reinitialize(Action template, Permutation permutation) {
             Template = template;
             ExecutionStatus = ExecutionStatus.NotYetExecuted;
-            this.parameters.Clear();
-            foreach (var kvp in parameters) this.parameters[kvp.Key] = kvp.Value;
+            parameters.Clear();
+            for (int i = 0; i < permutation.Count; i++) {
+                parameters[permutation.Keys[i]] = permutation.Values[i];
+            }
         }
     }
 }
