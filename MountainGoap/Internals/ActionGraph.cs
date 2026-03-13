@@ -45,22 +45,17 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Gets the neighbors for a node using two collections:
-        /// (1) <see cref="ActionNode.AvailableActions"/> — the set of templates that passed
-        ///     <see cref="Action.MightBePossible"/> for this node's state, populated at parent
-        ///     creation time (or seeded here for the start node).
-        /// (2) <see cref="Action.IsPossible"/> — the authoritative per-permutation gate that
-        ///     includes stateChecker and parameter-dependent logic.
+        /// Gets the neighbors for a node. For the start node (empty AvailableActions),
+        /// all index candidates are loaded directly — <see cref="Action.IsPossible"/>
+        /// handles filtering per permutation (it already includes static precondition checks).
         /// Child nodes inherit the parent's available set and update only the entries whose
         /// precondition keys overlap with the applied action's postcondition keys.
         /// </summary>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
             // Seed AvailableActions for the start node (empty signals unseeded).
+            // No MightBePossible pre-filter — IsPossible already covers static preconditions.
             if (node.AvailableActions.Count == 0) {
-                actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
-                foreach (var a in deltaSetTemp)
-                    if (a.MightBePossible(node.State)) node.AvailableActions.Add(a);
-                deltaSetTemp.Clear();
+                actionIndex.GetCandidates(baseState.Keys, node.AvailableActions);
             }
 
             foreach (var template in node.AvailableActions) {
@@ -82,10 +77,7 @@ namespace MountainGoap {
                             actionIndex.GetCandidates(template.PostconditionKeys, deltaSetTemp);
                         }
 
-                        foreach (var candidate in deltaSetTemp) {
-                            if (candidate.MightBePossible(newNode.State)) newNode.AvailableActions.Add(candidate);
-                            else newNode.AvailableActions.Remove(candidate);
-                        }
+                        newNode.AvailableActions.UnionWith(deltaSetTemp);
                         deltaSetTemp.Clear();
 
                         yield return newNode;
