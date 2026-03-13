@@ -16,10 +16,6 @@ namespace MountainGoap {
         private readonly IActionGraphPool graphPool;
         private readonly List<ActionNode> rentedNodes = new();
 
-        // Reusable temp buffer for index lookups inside Neighbors(). Cleared before each use
-        // and fully consumed before the next yield return — safe to reuse in a generator.
-        private readonly HashSet<Action> deltaSetTemp = new();
-
         private IReadOnlyActionIndex actionIndex = null!;
         private IActionNodePool nodePool = null!;
 
@@ -45,41 +41,18 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Gets the neighbors for a node. For the start node (empty AvailableActions),
-        /// all index candidates are loaded directly — <see cref="Action.IsPossible"/>
-        /// handles filtering per permutation (it already includes static precondition checks).
-        /// Child nodes inherit the parent's available set and update only the entries whose
-        /// precondition keys overlap with the applied action's postcondition keys.
+        /// Gets the neighbors for a node by iterating all action templates
+        /// and checking <see cref="Action.IsPossible"/> per permutation.
+        /// No indexing, no per-node action sets — just raw iteration every hop.
         /// </summary>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
-            // Seed AvailableActions for the start node (empty signals unseeded).
-            // No MightBePossible pre-filter — IsPossible already covers static preconditions.
-            if (node.AvailableActions.Count == 0) {
-                actionIndex.GetCandidates(baseState.Keys, node.AvailableActions);
-            }
-
-            foreach (var template in node.AvailableActions) {
+            foreach (var template in actionIndex) {
                 foreach (var parameters in template.GetPermutations(baseState)) {
                     var action = nodePool.RentAction(template, parameters);
                     if (action.IsPossible(node.State)) {
                         var newState = node.State.Snapshot();
                         var newNode = RentNode(action, newState);
                         newNode.Action?.ApplyEffects(newNode.State);
-
-                        // Child inherits parent's available set then applies delta updates.
-                        newNode.AvailableActions.UnionWith(node.AvailableActions);
-
-                        if (template.HasStateMutator) {
-                            // stateMutator writes unknown keys — re-evaluate all base candidates.
-                            actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
-                        }
-                        else {
-                            actionIndex.GetCandidates(template.PostconditionKeys, deltaSetTemp);
-                        }
-
-                        newNode.AvailableActions.UnionWith(deltaSetTemp);
-                        deltaSetTemp.Clear();
-
                         yield return newNode;
                     }
                     else {
