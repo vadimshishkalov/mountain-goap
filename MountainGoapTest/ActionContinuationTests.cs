@@ -19,7 +19,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         preconditions: new() {
                             { "key", false }

@@ -27,6 +27,7 @@ namespace MountainGoap {
 
         void IActionNodePool.ReturnNode(ActionNode node) {
             node.Action = null;
+            node.AvailableActions.Clear();
             nodes.Push(node);
         }
 

@@ -3,17 +3,15 @@
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Stack-backed pool for <see cref="ActionGraph"/> instances.
     /// </summary>
     internal class ActionGraphPool : IActionGraphPool {
         private readonly Stack<ActionGraph> pool = new();
 
-        ActionGraph IActionGraphPool.Rent(List<Action> actions, IActionNodePool nodePool) {
+        ActionGraph IActionGraphPool.Rent(IReadOnlyActionIndex index, IActionNodePool nodePool) {
             var graph = pool.TryPop(out var g) ? g : new ActionGraph(this);
-            graph.Reinitialize(actions, nodePool);
+            graph.Reinitialize(index, nodePool);
             return graph;
         }
 

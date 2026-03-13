@@ -16,14 +16,14 @@ namespace MountainGoap {
         private readonly IActionGraphPool graphPool = new ActionGraphPool();
         private readonly IActionPlanPool planPool = new ActionPlanPool();
         private readonly IActionNodePool nodePool;
-        private readonly List<Action> actions;
+        private readonly ActionCollection actions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Planner"/> class.
         /// </summary>
-        /// <param name="actions">Immutable list of action templates for the owning agent.</param>
+        /// <param name="actions">Indexed action collection for the owning agent.</param>
         /// <param name="nodePool">Pool for ActionNode and ExecutingAction objects.</param>
-        internal Planner(List<Action> actions, IActionNodePool nodePool) {
+        internal Planner(ActionCollection actions, IActionNodePool nodePool) {
             this.actions = actions;
             this.nodePool = nodePool;
         }

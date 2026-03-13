@@ -15,7 +15,12 @@ namespace MountainGoap {
     internal class ActionGraph : IDisposable {
         private readonly IActionGraphPool graphPool;
         private readonly List<ActionNode> rentedNodes = new();
-        private List<Action> actions = new();
+
+        // Reusable temp buffer for index lookups inside Neighbors(). Cleared before each use
+        // and fully consumed before the next yield return — safe to reuse in a generator.
+        private readonly HashSet<Action> deltaSetTemp = new();
+
+        private IReadOnlyActionIndex actionIndex = null!;
         private IActionNodePool nodePool = null!;
 
         internal ActionGraph(IActionGraphPool graphPool) {
@@ -25,8 +30,8 @@ namespace MountainGoap {
         /// <summary>
         /// Reinitializes this graph for a new planning pass. Called by <see cref="IActionGraphPool.Rent"/>.
         /// </summary>
-        internal void Reinitialize(List<Action> actions, IActionNodePool nodePool) {
-            this.actions = actions;
+        internal void Reinitialize(IReadOnlyActionIndex index, IActionNodePool nodePool) {
+            actionIndex = index;
             this.nodePool = nodePool;
         }
 
@@ -40,19 +45,49 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Gets the list of neighbors for a node. Permutations are generated from
-        /// <paramref name="baseState"/> (consistent across the whole planning pass);
-        /// availability is checked against <paramref name="node"/>'s full layered state.
-        /// Each yielded node is tracked by this graph and returned on <see cref="Dispose"/>.
+        /// Gets the neighbors for a node using two collections:
+        /// (1) <see cref="ActionNode.AvailableActions"/> — the set of templates that passed
+        ///     <see cref="Action.MightBePossible"/> for this node's state, populated at parent
+        ///     creation time (or seeded here for the start node).
+        /// (2) <see cref="Action.IsPossible"/> — the authoritative per-permutation gate that
+        ///     includes stateChecker and parameter-dependent logic.
+        /// Child nodes inherit the parent's available set and update only the entries whose
+        /// precondition keys overlap with the applied action's postcondition keys.
         /// </summary>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
-            foreach (var template in actions) {
+            // Seed AvailableActions for the start node (empty signals unseeded).
+            if (node.AvailableActions.Count == 0) {
+                actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
+                foreach (var a in deltaSetTemp)
+                    if (a.MightBePossible(node.State)) node.AvailableActions.Add(a);
+                deltaSetTemp.Clear();
+            }
+
+            foreach (var template in node.AvailableActions) {
                 foreach (var parameters in template.GetPermutations(baseState)) {
                     var action = nodePool.RentAction(template, parameters);
                     if (action.IsPossible(node.State)) {
                         var newState = node.State.Snapshot();
                         var newNode = RentNode(action, newState);
                         newNode.Action?.ApplyEffects(newNode.State);
+
+                        // Child inherits parent's available set then applies delta updates.
+                        newNode.AvailableActions.UnionWith(node.AvailableActions);
+
+                        if (template.HasStateMutator) {
+                            // stateMutator writes unknown keys — re-evaluate all base candidates.
+                            actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
+                        }
+                        else {
+                            actionIndex.GetCandidates(template.PostconditionKeys, deltaSetTemp);
+                        }
+
+                        foreach (var candidate in deltaSetTemp) {
+                            if (candidate.MightBePossible(newNode.State)) newNode.AvailableActions.Add(candidate);
+                            else newNode.AvailableActions.Remove(candidate);
+                        }
+                        deltaSetTemp.Clear();
+
                         yield return newNode;
                     }
                     else {

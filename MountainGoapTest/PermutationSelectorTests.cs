@@ -21,7 +21,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         name: "sample action",
                         cost: 1f,
