@@ -30,6 +30,14 @@ namespace MountainGoap {
         /// </summary>
         public ExecutingAction? Action { get; set; }
 
+        /// <summary>
+        /// Set of action templates that pass <see cref="Action.MightBePossible"/> for this node's
+        /// state. Permanent field — lives with the node and is cleared when the node is returned
+        /// to <see cref="ActionNodePool"/>. Empty on a freshly rented node (signals unseeded).
+        /// Populated during <see cref="ActionGraph.Neighbors"/> of the parent node.
+        /// </summary>
+        internal HashSet<MountainGoap.Action> AvailableActions { get; } = new();
+
 #pragma warning disable S3875 // "operator==" should not be overloaded on reference types
         /// <summary>
         /// Overrides the equality operator on ActionNodes.

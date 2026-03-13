@@ -147,6 +147,32 @@ namespace MountainGoap {
         }
 
         /// <summary>
+        /// Gets the state keys this action writes to via static postconditions.
+        /// Does not include keys written by <see cref="stateMutator"/> (unknown at design time).
+        /// </summary>
+        internal IEnumerable<string> PostconditionKeys {
+            get {
+                foreach (var key in postconditions.Keys) yield return key;
+                foreach (var key in arithmeticPostconditions.Keys) yield return key;
+                foreach (var key in parameterPostconditions.Values) yield return key;
+            }
+        }
+
+        /// <summary>
+        /// True when a <see cref="stateMutator"/> is set — <see cref="PostconditionKeys"/> is
+        /// then incomplete because the mutator can write to arbitrary state keys.
+        /// </summary>
+        internal bool HasStateMutator => stateMutator != null;
+
+        /// <summary>
+        /// Static precondition check without invoking <see cref="stateChecker"/>. Used to seed
+        /// and incrementally update <see cref="ActionNode.AvailableActions"/>. Returns
+        /// <see langword="true"/> when a stateChecker is present (conservative inclusion —
+        /// the full <see cref="IsPossible"/> check with parameters remains the authoritative gate).
+        /// </summary>
+        internal bool MightBePossible(IReadOnlyState state) => CheckStaticPreconditions(state);
+
+        /// <summary>
         /// Gets the cost of the action for the given runtime action and state.
         /// </summary>
         internal float GetCost(ExecutingAction action, IReadOnlyState currentState) {
@@ -180,23 +206,7 @@ namespace MountainGoap {
         /// Determines whether or not an action is possible.
         /// </summary>
         internal bool IsPossible(ExecutingAction action, IReadOnlyState state) {
-            foreach (var kvp in preconditions) {
-                if (!state.ContainsKey(kvp.Key)) return false;
-                if (state[kvp.Key] == null && state[kvp.Key] != kvp.Value) return false;
-                else if (state[kvp.Key] == null && state[kvp.Key] == kvp.Value) continue;
-                if (state[kvp.Key] is object obj && !obj.Equals(kvp.Value)) return false;
-            }
-            foreach (var kvp in comparativePreconditions) {
-                if (!state.ContainsKey(kvp.Key)) return false;
-                if (state[kvp.Key] == null) return false;
-                if (state[kvp.Key] is object obj && kvp.Value.Value is object obj2) {
-                    if (kvp.Value.Operator == ComparisonOperator.LessThan && !Utils.IsLowerThan(obj, obj2)) return false;
-                    else if (kvp.Value.Operator == ComparisonOperator.GreaterThan && !Utils.IsHigherThan(obj, obj2)) return false;
-                    else if (kvp.Value.Operator == ComparisonOperator.LessThanOrEquals && !Utils.IsLowerThanOrEquals(obj, obj2)) return false;
-                    else if (kvp.Value.Operator == ComparisonOperator.GreaterThanOrEquals && !Utils.IsHigherThanOrEquals(obj, obj2)) return false;
-                }
-                else return false;
-            }
+            if (!CheckStaticPreconditions(state)) return false;
             if (stateChecker?.Invoke(action, state) == false) return false;
             return true;
         }
@@ -264,6 +274,27 @@ namespace MountainGoap {
                     return;
                 }
             }
+        }
+
+        private bool CheckStaticPreconditions(IReadOnlyState state) {
+            foreach (var kvp in preconditions) {
+                if (!state.ContainsKey(kvp.Key)) return false;
+                if (state[kvp.Key] == null && state[kvp.Key] != kvp.Value) return false;
+                else if (state[kvp.Key] == null && state[kvp.Key] == kvp.Value) continue;
+                if (state[kvp.Key] is object obj && !obj.Equals(kvp.Value)) return false;
+            }
+            foreach (var kvp in comparativePreconditions) {
+                if (!state.ContainsKey(kvp.Key)) return false;
+                if (state[kvp.Key] == null) return false;
+                if (state[kvp.Key] is object obj && kvp.Value.Value is object obj2) {
+                    if (kvp.Value.Operator == ComparisonOperator.LessThan && !Utils.IsLowerThan(obj, obj2)) return false;
+                    else if (kvp.Value.Operator == ComparisonOperator.GreaterThan && !Utils.IsHigherThan(obj, obj2)) return false;
+                    else if (kvp.Value.Operator == ComparisonOperator.LessThanOrEquals && !Utils.IsLowerThanOrEquals(obj, obj2)) return false;
+                    else if (kvp.Value.Operator == ComparisonOperator.GreaterThanOrEquals && !Utils.IsHigherThanOrEquals(obj, obj2)) return false;
+                }
+                else return false;
+            }
+            return true;
         }
 
         private static ExecutionStatus DefaultExecutorCallback(Agent agent, IAction action) {
