@@ -224,6 +224,13 @@ namespace MountainGoap {
         /// The yielded <see cref="Permutation"/> shares a reusable values buffer; consumers
         /// must copy before advancing the enumerator.
         /// </summary>
+        // Per-thread scratch buffers for GetPermutations. Safe because permutation iteration
+        // is never nested on the same thread (Neighbors fully consumes one action before the next).
+        [ThreadStatic] private static List<object>[]? _tsValues;
+        [ThreadStatic] private static int[]? _tsIndices;
+        [ThreadStatic] private static int[]? _tsCounts;
+        [ThreadStatic] private static object?[]? _tsCurrentValues;
+
         internal IEnumerable<Permutation> GetPermutations(IReadOnlyState state) {
             var n = _permKeys.Length;
             if (n == 0) {
@@ -231,13 +238,20 @@ namespace MountainGoap {
                 yield break;
             }
 
-            // Local buffers — safe for concurrent callers on the same Action.
-            var values = new List<object>[n];
-            var indices = new int[n];
-            var counts = new int[n];
-            var currentValues = new object?[n];
+            if (_tsValues == null || _tsValues.Length < n) {
+                _tsValues = new List<object>[n];
+                _tsIndices = new int[n];
+                _tsCounts = new int[n];
+                _tsCurrentValues = new object?[n];
+            }
+
+            var values = _tsValues;
+            var indices = _tsIndices!;
+            var counts = _tsCounts!;
+            var currentValues = _tsCurrentValues!;
 
             for (int i = 0; i < n; i++) {
+                indices[i] = 0;
                 values[i] = permutationSelectors[_permKeys[i]](state);
                 var c = values[i].Count;
                 if (c == 0) yield break;
