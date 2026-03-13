@@ -16,7 +16,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         preconditions: new() {
                             { "key", null }
@@ -48,7 +48,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         preconditions: new() {
                             { "key", "non-null value" }
@@ -80,7 +80,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
@@ -115,7 +115,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
@@ -149,7 +149,7 @@ namespace MountainGoapTest {
                         }
                     )
                 },
-                actions: new List<Action> {
+                actions: new ActionCollection {
                     registry.RegisterAction(
                         name: "Step 1",
                         preconditions: new() {

@@ -3,8 +3,6 @@
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Pool for <see cref="ActionGraph"/> instances. One graph is rented per planning pass
     /// and returned via <see cref="ActionGraph.Dispose"/>.
@@ -13,7 +11,7 @@ namespace MountainGoap {
         /// <summary>
         /// Rents an <see cref="ActionGraph"/> initialized for a planning pass.
         /// </summary>
-        ActionGraph Rent(List<Action> actions, IActionNodePool nodePool);
+        ActionGraph Rent(IReadOnlyActionIndex index, IActionNodePool nodePool);
 
         /// <summary>
         /// Returns a disposed <see cref="ActionGraph"/> to the pool for reuse.

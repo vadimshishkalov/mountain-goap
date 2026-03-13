@@ -61,6 +61,10 @@ namespace MountainGoap {
             pool.ReturnNodeState(this);
         }
 
+        internal IEnumerable<string> DeltaKeys => delta.Keys;
+
+        internal bool HasDelta => delta.Count > 0;
+
         internal void Reinitialize(PlanningBaseState newBaseState) {
             baseState = newBaseState;
         }

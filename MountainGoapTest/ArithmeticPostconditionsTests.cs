@@ -22,7 +22,7 @@ namespace MountainGoapTest
                 ),
             };
 
-            List<MountainGoap.Action> actions = new() {
+            ActionCollection actions = new() {
                 registry.RegisterAction(
                     name: "Action1",
                     executor: (Agent agent, MountainGoap.IAction action) => {

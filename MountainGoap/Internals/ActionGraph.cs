@@ -15,8 +15,17 @@ namespace MountainGoap {
     internal class ActionGraph : IDisposable {
         private readonly IActionGraphPool graphPool;
         private readonly List<ActionNode> rentedNodes = new();
-        private List<Action> actions = new();
+
+        // Filled once per planning pass from base state keys; reused across nodes.
+        private readonly HashSet<Action> baseCandidates = new();
+
+        // Union buffer for nodes that have a delta; cleared and refilled per such node.
+        // Safe to reuse because ActionAStar.Search drives only one Neighbors() generator at a time.
+        private readonly HashSet<Action> candidateBuffer = new();
+
+        private IReadOnlyActionIndex actionIndex = null!;
         private IActionNodePool nodePool = null!;
+        private bool baseFilled;
 
         internal ActionGraph(IActionGraphPool graphPool) {
             this.graphPool = graphPool;
@@ -25,9 +34,11 @@ namespace MountainGoap {
         /// <summary>
         /// Reinitializes this graph for a new planning pass. Called by <see cref="IActionGraphPool.Rent"/>.
         /// </summary>
-        internal void Reinitialize(List<Action> actions, IActionNodePool nodePool) {
-            this.actions = actions;
+        internal void Reinitialize(IReadOnlyActionIndex index, IActionNodePool nodePool) {
+            actionIndex = index;
             this.nodePool = nodePool;
+            baseCandidates.Clear();
+            baseFilled = false;
         }
 
         /// <summary>
@@ -40,13 +51,29 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Gets the list of neighbors for a node. Permutations are generated from
-        /// <paramref name="baseState"/> (consistent across the whole planning pass);
-        /// availability is checked against <paramref name="node"/>'s full layered state.
-        /// Each yielded node is tracked by this graph and returned on <see cref="Dispose"/>.
+        /// Gets the list of neighbors for a node. Candidates are narrowed via the precondition
+        /// index: base-state candidates are filled into a reusable HashSet once per planning pass;
+        /// delta candidates are added to a second reusable buffer per delta node. No collections
+        /// are allocated in the hot path.
         /// </summary>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
-            foreach (var template in actions) {
+            if (!baseFilled) {
+                actionIndex.GetCandidates(baseState.Keys, baseCandidates);
+                baseFilled = true;
+            }
+
+            HashSet<Action> candidates;
+            if (node.State is PlanningNodeState ps && ps.HasDelta) {
+                candidateBuffer.Clear();
+                candidateBuffer.UnionWith(baseCandidates);
+                actionIndex.GetCandidates(ps.DeltaKeys, candidateBuffer);
+                candidates = candidateBuffer;
+            }
+            else {
+                candidates = baseCandidates;
+            }
+
+            foreach (var template in candidates) {
                 foreach (var parameters in template.GetPermutations(baseState)) {
                     var action = nodePool.RentAction(template, parameters);
                     if (action.IsPossible(node.State)) {

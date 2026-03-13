@@ -119,6 +119,12 @@ namespace MountainGoap {
         /// </summary>
         public static float DefaultStateCostDeltaMultiplier(IReadOnlyAction? action, string stateKey) => 1f;
 
+        /// <inheritdoc/>
+        public override bool Equals(object? obj) => obj is Action other && Name == other.Name;
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => Name.GetHashCode();
+
         /// <summary>
         /// Event that triggers when an action begins executing.
         /// </summary>
@@ -128,6 +134,17 @@ namespace MountainGoap {
         /// Event that triggers when an action finishes executing.
         /// </summary>
         public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status) => { };
+
+        /// <summary>
+        /// Gets the state keys referenced by static preconditions. Used by
+        /// <see cref="ActionCollection"/> to build the inverse precondition index.
+        /// </summary>
+        internal IEnumerable<string> PreconditionKeys {
+            get {
+                foreach (var key in preconditions.Keys) yield return key;
+                foreach (var key in comparativePreconditions.Keys) yield return key;
+            }
+        }
 
         /// <summary>
         /// Gets the cost of the action for the given runtime action and state.
