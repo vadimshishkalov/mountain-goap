@@ -31,11 +31,6 @@ namespace MountainGoap {
         public ExecutingAction? Action { get; set; }
 
         /// <summary>
-        /// Action templates available to this node. Used by <see cref="NeighborLookupMode.Index"/>.
-        /// </summary>
-        internal HashSet<MountainGoap.Action> AvailableActions { get; } = new();
-
-        /// <summary>
         /// Templates confirmed possible by this node or ancestors.
         /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>

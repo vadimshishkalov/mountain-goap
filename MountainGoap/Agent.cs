@@ -28,7 +28,7 @@ namespace MountainGoap {
         /// <param name="costMaximum">Maximum cost of an allowable plan.</param>
         /// <param name="stepMaximum">Maximum steps in an allowable plan.</param>
         /// <param name="neighborLookupMode">Neighbor lookup strategy for planning.</param>
-        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Aggressive) {
+        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Index) {
             Name = name ?? $"Agent {Guid.NewGuid()}";
             if (state != null) State = state;
             if (memory != null) Memory = memory;

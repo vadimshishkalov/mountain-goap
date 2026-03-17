@@ -77,11 +77,11 @@ namespace MountainGoap {
         }
 
         private IEnumerable<ActionNode> NeighborsIndex(ActionNode node, IReadOnlyState baseState) {
-            if (node.AvailableActions.Count == 0) {
-                actionIndex.GetCandidates(baseState.Keys, node.AvailableActions);
+            if (node.Candidates.Count == 0) {
+                actionIndex.GetCandidates(baseState.Keys, node.Candidates);
             }
 
-            foreach (var template in node.AvailableActions) {
+            foreach (var template in node.Candidates) {
                 foreach (var permutation in template.GetPermutations(baseState)) {
                     var action = nodePool.RentAction(template, permutation);
                     if (action.IsPossible(node.State)) {
@@ -89,7 +89,7 @@ namespace MountainGoap {
                         var newNode = RentNode(action, newState);
                         newNode.Action?.ApplyEffects(newNode.State);
 
-                        newNode.AvailableActions.UnionWith(node.AvailableActions);
+                        newNode.Candidates.UnionWith(node.Candidates);
 
                         if (template.HasStateMutator) {
                             actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
@@ -98,7 +98,7 @@ namespace MountainGoap {
                             actionIndex.GetCandidates(template.PostconditionKeys, deltaSetTemp);
                         }
 
-                        newNode.AvailableActions.UnionWith(deltaSetTemp);
+                        newNode.Candidates.UnionWith(deltaSetTemp);
                         deltaSetTemp.Clear();
 
                         yield return newNode;

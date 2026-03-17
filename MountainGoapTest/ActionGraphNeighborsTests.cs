@@ -57,7 +57,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "B" }, executedActions);
@@ -120,7 +121,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "C" }, executedActions);
@@ -167,7 +169,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "B" }, executedActions);
@@ -221,7 +224,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.True(stateCheckerCalls > 0, "stateChecker should have been called");
@@ -272,7 +276,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Contains("A", executedActions);
@@ -328,7 +333,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "Mutator", "Finisher" }, executedActions);
@@ -385,7 +391,8 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     )
-                }
+                },
+                neighborLookupMode: NeighborLookupMode.Aggressive
             );
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "Step1", "Step2", "Step3" }, executedActions);
