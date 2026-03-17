@@ -59,8 +59,8 @@ namespace MountainGoap {
             }
 
             foreach (var template in node.AvailableActions) {
-                foreach (var parameters in template.GetPermutations(baseState)) {
-                    var action = nodePool.RentAction(template, parameters);
+                foreach (var permutation in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, permutation);
                     if (action.IsPossible(node.State)) {
                         var newState = node.State.Snapshot();
                         var newNode = RentNode(action, newState);

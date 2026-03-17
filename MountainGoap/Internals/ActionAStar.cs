@@ -95,11 +95,11 @@ namespace MountainGoap {
         private static float Heuristic(ActionNode actionNode, BaseGoal goal, ActionNode current) {
             var cost = 0f;
             if (goal is Goal normalGoal) {
-                normalGoal.DesiredState.Select(kvp => kvp.Key).ToList().ForEach(key => {
-                    if (!actionNode.State.ContainsKey(key)) cost++;
-                    else if (actionNode.State[key] == null && actionNode.State[key] != normalGoal.DesiredState[key]) cost++;
-                    else if (actionNode.State[key] is object obj && !obj.Equals(normalGoal.DesiredState[key])) cost++;
-                });
+                foreach (var kvp in normalGoal.DesiredState) {
+                    if (!actionNode.State.ContainsKey(kvp.Key)) cost++;
+                    else if (actionNode.State[kvp.Key] == null && actionNode.State[kvp.Key] != kvp.Value) cost++;
+                    else if (actionNode.State[kvp.Key] is object obj && !obj.Equals(kvp.Value)) cost++;
+                }
             }
             else if (goal is ExtremeGoal extremeGoal) {
                 foreach (var kvp in extremeGoal.DesiredState) {
