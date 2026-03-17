@@ -31,13 +31,20 @@ namespace MountainGoap {
         public ExecutingAction? Action { get; set; }
 
         /// <summary>
+        /// Action templates available to this node. Used by <see cref="NeighborLookupMode.Index"/>.
+        /// </summary>
+        internal HashSet<MountainGoap.Action> AvailableActions { get; } = new();
+
+        /// <summary>
         /// Templates confirmed possible by this node or ancestors.
+        /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>
         internal HashSet<MountainGoap.Action> Possible { get; } = new();
 
         /// <summary>
         /// Templates not yet checked for this node's state. Promoted to
         /// <see cref="Possible"/> or discarded during expansion.
+        /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>
         internal HashSet<MountainGoap.Action> Candidates { get; } = new();
 

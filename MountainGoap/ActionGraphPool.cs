@@ -9,9 +9,9 @@ namespace MountainGoap {
     internal class ActionGraphPool : IActionGraphPool {
         private readonly Stack<ActionGraph> pool = new();
 
-        ActionGraph IActionGraphPool.Rent(IReadOnlyActionIndex index, IActionNodePool nodePool) {
+        ActionGraph IActionGraphPool.Rent(IReadOnlyActionIndex index, IActionNodePool nodePool, NeighborLookupMode mode) {
             var graph = pool.TryPop(out var g) ? g : new ActionGraph(this);
-            graph.Reinitialize(index, nodePool);
+            graph.Reinitialize(index, nodePool, mode);
             return graph;
         }
 

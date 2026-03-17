@@ -23,6 +23,7 @@ namespace MountainGoap {
 
         private IReadOnlyActionIndex actionIndex = null!;
         private IActionNodePool nodePool = null!;
+        private NeighborLookupMode mode;
 
         internal ActionGraph(IActionGraphPool graphPool) {
             this.graphPool = graphPool;
@@ -31,9 +32,10 @@ namespace MountainGoap {
         /// <summary>
         /// Reinitializes this graph for a new planning pass. Called by <see cref="IActionGraphPool.Rent"/>.
         /// </summary>
-        internal void Reinitialize(IReadOnlyActionIndex index, IActionNodePool nodePool) {
+        internal void Reinitialize(IReadOnlyActionIndex index, IActionNodePool nodePool, NeighborLookupMode mode) {
             actionIndex = index;
             this.nodePool = nodePool;
+            this.mode = mode;
         }
 
         /// <summary>
@@ -46,12 +48,69 @@ namespace MountainGoap {
         }
 
         /// <summary>
-        /// Gets the neighbors for a node. Candidates are checked via
-        /// <see cref="Action.IsPossible"/> and promoted or discarded.
-        /// Possible templates are trusted and expanded directly.
-        /// Delta invalidates Possible templates back into Candidates.
+        /// Gets the neighbors for a node, dispatching to the strategy selected by <see cref="mode"/>.
         /// </summary>
         internal IEnumerable<ActionNode> Neighbors(ActionNode node, IReadOnlyState baseState) {
+            return mode switch {
+                NeighborLookupMode.Disabled => NeighborsDisabled(node, baseState),
+                NeighborLookupMode.Index => NeighborsIndex(node, baseState),
+                NeighborLookupMode.Aggressive => NeighborsAggressive(node, baseState),
+                _ => throw new System.NotImplementedException($"Unknown mode: {mode}")
+            };
+        }
+
+        private IEnumerable<ActionNode> NeighborsDisabled(ActionNode node, IReadOnlyState baseState) {
+            foreach (var template in actionIndex) {
+                foreach (var parameters in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, parameters);
+                    if (action.IsPossible(node.State)) {
+                        var newState = node.State.Snapshot();
+                        var newNode = RentNode(action, newState);
+                        newNode.Action?.ApplyEffects(newNode.State);
+                        yield return newNode;
+                    }
+                    else {
+                        nodePool.ReturnAction(action);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<ActionNode> NeighborsIndex(ActionNode node, IReadOnlyState baseState) {
+            if (node.AvailableActions.Count == 0) {
+                actionIndex.GetCandidates(baseState.Keys, node.AvailableActions);
+            }
+
+            foreach (var template in node.AvailableActions) {
+                foreach (var parameters in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, parameters);
+                    if (action.IsPossible(node.State)) {
+                        var newState = node.State.Snapshot();
+                        var newNode = RentNode(action, newState);
+                        newNode.Action?.ApplyEffects(newNode.State);
+
+                        newNode.AvailableActions.UnionWith(node.AvailableActions);
+
+                        if (template.HasStateMutator) {
+                            actionIndex.GetCandidates(baseState.Keys, deltaSetTemp);
+                        }
+                        else {
+                            actionIndex.GetCandidates(template.PostconditionKeys, deltaSetTemp);
+                        }
+
+                        newNode.AvailableActions.UnionWith(deltaSetTemp);
+                        deltaSetTemp.Clear();
+
+                        yield return newNode;
+                    }
+                    else {
+                        nodePool.ReturnAction(action);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<ActionNode> NeighborsAggressive(ActionNode node, IReadOnlyState baseState) {
             // Seed candidates for the start node.
             if (node.Candidates.Count == 0 && node.Possible.Count == 0) {
                 actionIndex.GetCandidates(baseState.Keys, node.Candidates);
