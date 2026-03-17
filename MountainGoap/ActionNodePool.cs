@@ -33,12 +33,12 @@ namespace MountainGoap {
             nodes.Push(node);
         }
 
-        ExecutingAction IActionNodePool.RentAction(Action template, Dictionary<string, object?> parameters) {
+        ExecutingAction IActionNodePool.RentAction(Action template, Permutation parameters) {
             if (actions.TryPop(out var ea)) {
                 ea.Reinitialize(template, parameters);
                 return ea;
             }
-            return new ExecutingAction(template, parameters.Copy());
+            return new ExecutingAction(template, parameters);
         }
 
         void IActionNodePool.ReturnAction(ExecutingAction action) => actions.Push(action);

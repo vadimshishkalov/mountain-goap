@@ -3,7 +3,6 @@
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Generic;
 
     /// <summary>
     /// Pool for ActionNode and ExecutingAction objects used during A* planning.
@@ -25,7 +24,7 @@ namespace MountainGoap {
         /// Rents an ExecutingAction, reusing a pooled instance if available.
         /// The returned instance is initialized with a copy of the provided parameters.
         /// </summary>
-        ExecutingAction RentAction(Action template, Dictionary<string, object?> parameters);
+        ExecutingAction RentAction(Action template, Permutation parameters);
 
         /// <summary>
         /// Returns an ExecutingAction to the pool.

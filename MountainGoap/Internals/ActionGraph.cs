@@ -61,8 +61,8 @@ namespace MountainGoap {
 
         private IEnumerable<ActionNode> NeighborsDisabled(ActionNode node, IReadOnlyState baseState) {
             foreach (var template in actionIndex) {
-                foreach (var parameters in template.GetPermutations(baseState)) {
-                    var action = nodePool.RentAction(template, parameters);
+                foreach (var permutation in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, permutation);
                     if (action.IsPossible(node.State)) {
                         var newState = node.State.Snapshot();
                         var newNode = RentNode(action, newState);
@@ -82,8 +82,8 @@ namespace MountainGoap {
             }
 
             foreach (var template in node.AvailableActions) {
-                foreach (var parameters in template.GetPermutations(baseState)) {
-                    var action = nodePool.RentAction(template, parameters);
+                foreach (var permutation in template.GetPermutations(baseState)) {
+                    var action = nodePool.RentAction(template, permutation);
                     if (action.IsPossible(node.State)) {
                         var newState = node.State.Snapshot();
                         var newNode = RentNode(action, newState);
@@ -136,8 +136,8 @@ namespace MountainGoap {
         }
 
         private IEnumerable<ActionNode> ExpandCandidate(Action template, ActionNode node, IReadOnlyState baseState) {
-            foreach (var parameters in template.GetPermutations(baseState)) {
-                var action = nodePool.RentAction(template, parameters);
+            foreach (var permutation in template.GetPermutations(baseState)) {
+                var action = nodePool.RentAction(template, permutation);
                 if (action.IsPossible(node.State)) {
                     passedTemp.Add(template);
                     yield return BuildNeighbor(action, template, node, baseState);
@@ -150,8 +150,8 @@ namespace MountainGoap {
         }
 
         private IEnumerable<ActionNode> ExpandPossible(Action template, ActionNode node, IReadOnlyState baseState) {
-            foreach (var parameters in template.GetPermutations(baseState)) {
-                var action = nodePool.RentAction(template, parameters);
+            foreach (var permutation in template.GetPermutations(baseState)) {
+                var action = nodePool.RentAction(template, permutation);
                 if (template.HasStateChecker && !action.IsPossible(node.State)) {
                     nodePool.ReturnAction(action);
                     continue;
