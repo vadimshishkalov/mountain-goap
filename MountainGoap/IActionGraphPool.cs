@@ -11,7 +11,7 @@ namespace MountainGoap {
         /// <summary>
         /// Rents an <see cref="ActionGraph"/> initialized for a planning pass.
         /// </summary>
-        ActionGraph Rent(IReadOnlyActionIndex index, IActionNodePool nodePool);
+        ActionGraph Rent(IReadOnlyActionIndex index, IActionNodePool nodePool, NeighborLookupMode mode);
 
         /// <summary>
         /// Returns a disposed <see cref="ActionGraph"/> to the pool for reuse.

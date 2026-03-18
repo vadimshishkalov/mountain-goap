@@ -3,6 +3,7 @@
 // </copyright>
 
 namespace MountainGoap {
+    using System.Collections.Generic;
     using Priority_Queue;
 
     /// <summary>
@@ -30,12 +31,17 @@ namespace MountainGoap {
         public ExecutingAction? Action { get; set; }
 
         /// <summary>
-        /// Set of action templates that pass <see cref="Action.MightBePossible"/> for this node's
-        /// state. Permanent field — lives with the node and is cleared when the node is returned
-        /// to <see cref="ActionNodePool"/>. Empty on a freshly rented node (signals unseeded).
-        /// Populated during <see cref="ActionGraph.Neighbors"/> of the parent node.
+        /// Templates confirmed possible by this node or ancestors.
+        /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>
-        internal HashSet<MountainGoap.Action> AvailableActions { get; } = new();
+        internal HashSet<MountainGoap.Action> Possible { get; } = new();
+
+        /// <summary>
+        /// Templates not yet checked for this node's state. Promoted to
+        /// <see cref="Possible"/> or discarded during expansion.
+        /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
+        /// </summary>
+        internal HashSet<MountainGoap.Action> Candidates { get; } = new();
 
         /// <summary>
         /// Cost to traverse this node.
