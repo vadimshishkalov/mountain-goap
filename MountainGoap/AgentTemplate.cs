@@ -23,20 +23,25 @@ namespace MountainGoap {
         internal IReadOnlyDictionary<string, object?> StateTemplate { get; }
 
         /// <summary>
-        /// Goals to copy into each runtime instance.
+        /// Goals shared across all runtime instances of this template.
         /// </summary>
-        internal IReadOnlyList<BaseGoal> GoalsTemplate { get; }
+        public IReadOnlyList<BaseGoal> Goals { get; }
 
         /// <summary>
-        /// Shared action collection. All instances of this type reference the same object — do not
-        /// mutate it after registration.
+        /// Read-only view of the shared action collection. Use <see cref="ActionCollection"/>
+        /// (internal) when Add access is required.
         /// </summary>
-        public ActionCollection Actions { get; }
+        public IReadOnlyActionIndex Actions { get; }
 
         /// <summary>
-        /// Sensors to copy into each runtime instance.
+        /// Internal concrete action collection — used by the planner and registry.
         /// </summary>
-        internal IReadOnlyList<Sensor> Sensors { get; }
+        internal ActionCollection ActionCollection { get; }
+
+        /// <summary>
+        /// Sensors shared across all runtime instances of this template.
+        /// </summary>
+        public IReadOnlyList<Sensor> Sensors { get; }
 
         /// <summary>
         /// Maximum plan cost forwarded to each instance.
@@ -64,7 +69,8 @@ namespace MountainGoap {
             NeighborLookupMode neighborLookupMode) {
             Name = name;
             StateTemplate = stateTemplate;
-            GoalsTemplate = goals.AsReadOnly();
+            Goals = goals.AsReadOnly();
+            ActionCollection = actions;
             Actions = actions;
             Sensors = sensors.AsReadOnly();
             CostMaximum = costMaximum;

@@ -88,19 +88,7 @@ namespace MountainGoap {
         }
 
         private static Agent CreateFromTemplate(AgentTemplate template) {
-            var s = new State();
-            foreach (var kvp in template.StateTemplate) s.Set(kvp.Key, kvp.Value);
-            var agent = new Agent(
-                name: template.Name,
-                state: s,
-                goals: new List<BaseGoal>(template.GoalsTemplate),
-                actions: template.Actions,
-                sensors: new List<Sensor>(template.Sensors),
-                costMaximum: template.CostMaximum,
-                stepMaximum: template.StepMaximum,
-                neighborLookupMode: template.NeighborLookupMode);
-            agent.Template = template;
-            return agent;
+            return new Agent(template);
         }
     }
 }

@@ -79,12 +79,13 @@ namespace Examples {
             agent.State["foodPositions"] = foodPositions;
             agent.State["hp"] = 2;
             // TODO: Declare these in RegisterAgent (goals/sensors/actions) instead of mutating post-construction.
-            agent.Goals.Add(eatFood);
-            agent.Sensors.Add(seeFoodSensor);
-            agent.Sensors.Add(foodProximitySensor);
-            agent.Actions.Add(goToFood);
-            agent.Actions.Add(lookForFood);
-            agent.Actions.Add(eat);
+            // Goals/Sensors/Actions are now owned by AgentTemplate and are read-only on Agent.
+            // agent.Goals.Add(eatFood);
+            // agent.Sensors.Add(seeFoodSensor);
+            // agent.Sensors.Add(foodProximitySensor);
+            // agent.Actions.Add(goToFood);
+            // agent.Actions.Add(lookForFood);
+            // agent.Actions.Add(eat);
             return agent;
         }
 

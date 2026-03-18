@@ -18,6 +18,15 @@ namespace MountainGoap {
         /// <summary>Gets the template this agent was created from, or null if not registry-vended.</summary>
         AgentTemplate? Template { get; }
 
+        /// <summary>Gets the goals this agent pursues.</summary>
+        IReadOnlyList<BaseGoal> Goals { get; }
+
+        /// <summary>Gets the sensors this agent runs each step.</summary>
+        IReadOnlyList<Sensor> Sensors { get; }
+
+        /// <summary>Gets the actions available to this agent.</summary>
+        IReadOnlyActionIndex Actions { get; }
+
         /// <summary>Gets a value indicating whether the agent is currently executing one or more actions.</summary>
         bool IsBusy { get; }
 

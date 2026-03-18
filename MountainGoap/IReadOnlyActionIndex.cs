@@ -9,7 +9,7 @@ namespace MountainGoap {
     /// Read-only view of an indexed action collection. Used by the planning internals to
     /// retrieve action candidates by state key without scanning every action template.
     /// </summary>
-    internal interface IReadOnlyActionIndex : IEnumerable<Action> {
+    public interface IReadOnlyActionIndex : IEnumerable<Action> {
         /// <summary>Gets the total number of action templates in the collection.</summary>
         int Count { get; }
 

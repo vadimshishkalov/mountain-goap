@@ -32,12 +32,26 @@ namespace MountainGoap {
             Name = name ?? $"Agent {Guid.NewGuid()}";
             if (state != null) State = state;
             if (memory != null) Memory = memory;
-            if (goals != null) Goals = goals;
-            if (actions != null) Actions = actions;
-            if (sensors != null) Sensors = sensors;
             CostMaximum = costMaximum;
             StepMaximum = stepMaximum;
-            planner = new Planner(Actions, new ActionNodePool(), neighborLookupMode);
+            var stateSnapshot = new Dictionary<string, object?>();
+            if (state != null) foreach (var kvp in state) stateSnapshot[kvp.Key] = kvp.Value;
+            var actionCollection = actions ?? new ActionCollection();
+            Template = new AgentTemplate(Name, stateSnapshot, goals ?? new List<BaseGoal>(), actionCollection, sensors ?? new List<Sensor>(), costMaximum, stepMaximum, neighborLookupMode);
+            planner = new Planner(actionCollection, new ActionNodePool(), neighborLookupMode);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Agent"/> class from a registered template.
+        /// Used by <see cref="AgentRegistry"/> — not for direct construction.
+        /// </summary>
+        internal Agent(AgentTemplate template) {
+            Name = template.Name;
+            foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
+            CostMaximum = template.CostMaximum;
+            StepMaximum = template.StepMaximum;
+            Template = template;
+            planner = new Planner(template.ActionCollection, new ActionNodePool(), template.NeighborLookupMode);
         }
 
         /// <summary>
@@ -110,19 +124,19 @@ namespace MountainGoap {
         public Dictionary<string, object?> Memory { get; set; } = new();
 
         /// <summary>
-        /// Gets or sets the list of active goals for the agent.
+        /// Gets the goals this agent pursues. Owned by the agent's template.
         /// </summary>
-        public List<BaseGoal> Goals { get; set; } = new();
+        public IReadOnlyList<BaseGoal> Goals => Template!.Goals;
 
         /// <summary>
-        /// Gets or sets the actions available to the agent.
+        /// Gets the actions available to the agent. Owned by the agent's template.
         /// </summary>
-        public ActionCollection Actions { get; set; } = new();
+        public IReadOnlyActionIndex Actions => Template!.ActionCollection;
 
         /// <summary>
-        /// Gets or sets the sensors available to the agent.
+        /// Gets the sensors this agent runs each step. Owned by the agent's template.
         /// </summary>
-        public List<Sensor> Sensors { get; set; } = new();
+        public IReadOnlyList<Sensor> Sensors => Template!.Sensors;
 
         /// <summary>
         /// Gets or sets the plan cost maximum for the agent.
@@ -176,7 +190,6 @@ namespace MountainGoap {
             Template = template;
             State.Clear();
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
-            Goals = new List<BaseGoal>(template.GoalsTemplate);
             Memory = new Dictionary<string, object?>();
             IsBusy = false;
             IsPlanning = false;
