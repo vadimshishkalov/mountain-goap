@@ -19,7 +19,7 @@ namespace MountainGoap {
         AgentTemplate? Template { get; }
 
         /// <summary>Gets the goals this agent pursues.</summary>
-        IReadOnlyList<BaseGoal> Goals { get; }
+        IReadOnlyList<IReadOnlyGoal> Goals { get; }
 
         /// <summary>Gets the sensors this agent runs each step.</summary>
         IReadOnlyList<Sensor> Sensors { get; }

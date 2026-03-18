@@ -28,7 +28,8 @@ namespace MountainGoap {
         /// <param name="costMaximum">Maximum cost of an allowable plan.</param>
         /// <param name="stepMaximum">Maximum steps in an allowable plan.</param>
         /// <param name="neighborLookupMode">Neighbor lookup strategy for planning.</param>
-        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Index) {
+        /// <param name="actionNodePool">Shared pool for planning node and action objects. Pass a shared instance to reduce allocations when multiple agents use the same action set.</param>
+        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Index, ActionNodePool? actionNodePool = null) {
             Name = name ?? $"Agent {Guid.NewGuid()}";
             if (state != null) State = state;
             if (memory != null) Memory = memory;
@@ -38,7 +39,7 @@ namespace MountainGoap {
             if (state != null) foreach (var kvp in state) stateSnapshot[kvp.Key] = kvp.Value;
             var actionCollection = actions ?? new ActionCollection();
             Template = new AgentTemplate(Name, stateSnapshot, goals ?? new List<BaseGoal>(), actionCollection, sensors ?? new List<Sensor>(), costMaximum, stepMaximum, neighborLookupMode);
-            planner = new Planner(actionCollection, new ActionNodePool(), neighborLookupMode);
+            planner = new Planner(actionCollection, actionNodePool ?? new ActionNodePool(), neighborLookupMode);
         }
 
         /// <summary>
@@ -123,6 +124,9 @@ namespace MountainGoap {
         /// </summary>
         public Dictionary<string, object?> Memory { get; set; } = new();
 
+        /// <inheritdoc/>
+        IReadOnlyList<IReadOnlyGoal> IReadOnlyAgent.Goals => Template!.Goals;
+
         /// <summary>
         /// Gets the goals this agent pursues. Owned by the agent's template.
         /// </summary>
@@ -151,12 +155,12 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently executing one or more actions.
         /// </summary>
-        public bool IsBusy { get; set; } = false;
+        public bool IsBusy { get; internal set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently planning.
         /// </summary>
-        public bool IsPlanning { get; set; } = false;
+        public bool IsPlanning { get; internal set; } = false;
 
         /// <summary>
         /// You should call this every time your game state updates.

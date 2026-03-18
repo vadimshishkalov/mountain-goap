@@ -11,7 +11,7 @@ namespace MountainGoap {
     /// then transferred to the agent and executed. Exposed publicly as <see cref="IActionPlan"/>;
     /// dispose/mutation methods are internal to prevent misuse from user callbacks.
     /// </summary>
-    public class ActionPlan : IActionPlan {
+    internal class ActionPlan : IActionPlan {
         private readonly IActionPlanPool planPool;
         private IActionNodePool nodePool = null!;
 
@@ -22,7 +22,7 @@ namespace MountainGoap {
         internal readonly List<ExecutingAction> Steps = new();
 
         /// <inheritdoc/>
-        IReadOnlyList<ExecutingAction> IActionPlan.Steps => Steps;
+        IReadOnlyList<IReadOnlyAction> IActionPlan.Steps => Steps;
 
         internal ActionPlan(IActionPlanPool planPool) {
             this.planPool = planPool;
