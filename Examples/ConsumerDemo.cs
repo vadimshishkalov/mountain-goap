@@ -15,9 +15,10 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var locations = new List<string> { "home", "work", "store" };
-            var agent = new Agent(
+            agentRegistry.RegisterAgent(
                 name: "Consumer Agent",
                 state: new() {
                     { "food", 0 },
@@ -40,7 +41,7 @@ namespace Examples {
                         }),
                 },
                 actions: new() {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Walk",
                         cost: 6f,
                         executor: GenericExecutor,
@@ -60,7 +61,7 @@ namespace Examples {
                             { "location", "location" }
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Drive",
                         cost: 1f,
                         preconditions: new() {
@@ -84,7 +85,7 @@ namespace Examples {
                             { "justTraveled", true }
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Get in car",
                         cost: 1f,
                         preconditions: new() {
@@ -102,7 +103,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Get out of car",
                         cost: 1f,
                         preconditions: new() {
@@ -119,7 +120,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Work",
                         cost: 1f,
                         preconditions: new() {
@@ -138,7 +139,7 @@ namespace Examples {
                         },
                         executor: GenericExecutor
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Shop",
                         cost: 1f,
                         preconditions: new() {
@@ -160,6 +161,7 @@ namespace Examples {
                         executor: GenericExecutor
                     )
                 });
+            Agent agent = agentRegistry.GetInstance("Consumer Agent");
             while (agent.State["food"] is int food && food < 5) agent.Step();
         }
 

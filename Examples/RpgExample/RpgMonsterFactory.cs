@@ -21,6 +21,9 @@ namespace Examples {
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, List<Vector2> foodPositions) {
             var registry = new ActionRegistry();
+            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
+            // The mutations below (State setup + Goals/Sensors/Actions.Add) must move into
+            // RegisterAgent before this factory can use instance pooling.
             var agent = RpgCharacterFactory.Create(agents, $"Monster {counter++}");
             Goal eatFood = new(
                 name: "Eat Food",
@@ -69,11 +72,13 @@ namespace Examples {
                     { "eatingFood", true }
                 }
             );
+            // TODO: Move these initial-state assignments into the state template in RegisterAgent.
             agent.State["canSeeFood"] = false;
             agent.State["nearFood"] = false;
             agent.State["eatingFood"] = false;
             agent.State["foodPositions"] = foodPositions;
             agent.State["hp"] = 2;
+            // TODO: Declare these in RegisterAgent (goals/sensors/actions) instead of mutating post-construction.
             agent.Goals.Add(eatFood);
             agent.Sensors.Add(seeFoodSensor);
             agent.Sensors.Add(foodProximitySensor);

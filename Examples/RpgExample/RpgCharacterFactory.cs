@@ -55,6 +55,9 @@ namespace Examples {
                 }
             );
 
+            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
+            // Blocker: name is a per-call parameter — requires either fixing the template name
+            // or adding per-instance name support to AgentRegistry.
             Agent agent = new(
                 name: name,
                 state: new() {
