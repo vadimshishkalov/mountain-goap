@@ -30,7 +30,7 @@ namespace Examples {
         /// <param name="agents">List of all agents.</param>
         /// <param name="distance">Distance radius to be checked.</param>
         /// <returns>An agent in range, or <see cref="null"/> if none exist.</returns>
-        internal static Agent? GetEnemyInRange(Agent source, List<Agent> agents, float distance) {
+        internal static Agent? GetEnemyInRange(IReadOnlyAgent source, List<Agent> agents, float distance) {
             foreach (var agent in agents) {
                 if (agent == source) continue;
                 if (source.State["position"] is Vector2 pos1 && agent.State["position"] is Vector2 pos2 && InDistance(pos1, pos2, distance) && source.State["faction"] != agent.State["faction"]) return agent;

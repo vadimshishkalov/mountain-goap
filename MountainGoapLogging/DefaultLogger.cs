@@ -1,13 +1,13 @@
-﻿namespace MountainGoapLogging {
+namespace MountainGoapLogging {
     using MountainGoap;
     using Serilog;
     using Serilog.Core;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Linq;
 
     public class DefaultLogger {
         private readonly Logger logger;
-        
+
         public DefaultLogger(bool logToConsole = true, string? loggingFile = null) {
             var config = new LoggerConfiguration();
             if (logToConsole) config.WriteTo.Console();
@@ -26,7 +26,7 @@
             logger = config.CreateLogger();
         }
 
-        private void OnEvaluatedActionNode(ActionNode node, ConcurrentDictionary<ActionNode, ActionNode> nodes) {
+        private void OnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
             var cameFromList = new List<ActionNode>();
             var traceback = node;
             while (nodes.ContainsKey(traceback) && traceback.Action != nodes[traceback].Action) {
@@ -37,51 +37,52 @@
             logger.Information("Evaluating node {node} with {count} nodes leading to it.", node.Action?.Name, cameFromList.Count - 1);
         }
 
-        private void OnPlanUpdated(Agent agent, List<ExecutingAction> actionList) {
+        private void OnPlanUpdated(IReadOnlyAgent agent, IActionPlan plan) {
             logger.Information("Agent {agent} has a new plan:", agent.Name);
             var count = 1;
-            foreach (var action in actionList) {
+            foreach (var action in plan.Steps) {
                 logger.Information("\tStep #{count}: {action}", count, action.Name);
                 count++;
             }
         }
 
-        private void OnAgentActionSequenceCompleted(Agent agent) {
+        private void OnAgentActionSequenceCompleted(IReadOnlyAgent agent) {
             logger.Information("Agent {agent} completed action sequence.", agent.Name);
         }
 
-        private void OnAgentStep(Agent agent) {
+        private void OnAgentStep(IReadOnlyAgent agent) {
             logger.Information("Agent {agent} is working.", agent.Name);
         }
 
-        private void OnBeginExecuteAction(Agent agent, IAction action) {
+        private void OnBeginExecuteAction(IReadOnlyAgent agent, IAction action) {
             logger.Information("Agent {agent} began executing action {action}.", agent.Name, action.Name);
             if (!action.ParameterKeys.Any()) return;
             logger.Information("\tAction parameters:");
             foreach (var key in action.ParameterKeys) logger.Information("\t\t{key}: {value}", key, action.GetParameter(key));
         }
 
-        private void OnFinishExecuteAction(Agent agent, IAction action, ExecutionStatus status) {
+        private void OnFinishExecuteAction(IReadOnlyAgent agent, IAction action, ExecutionStatus status) {
             logger.Information("Agent {agent} finished executing action {action} with status {status}.", agent.Name, action.Name, status);
         }
 
-        private void OnPlanningFinished(Agent agent, BaseGoal? goal, float utility) {
+        private void OnPlanningFinished(IReadOnlyAgent agent, BaseGoal? goal, float utility) {
             if (goal is null) logger.Warning("Agent {agent} finished planning and found no possible goal.", agent.Name);
             else logger.Information("Agent {agent} finished planning with goal {goal}, utility value {utility}.", agent.Name, goal.Name, utility);
         }
 
-        private void OnPlanningStartedForSingleGoal(Agent agent, BaseGoal goal) {
+        private void OnPlanningStartedForSingleGoal(IReadOnlyAgent agent, BaseGoal goal) {
             logger.Information("Agent {agent} started planning for goal {goal}.", agent.Name, goal.Name);
         }
-        private void OnPlanningFinishedForSingleGoal(Agent agent, BaseGoal goal, float utility) {
+
+        private void OnPlanningFinishedForSingleGoal(IReadOnlyAgent agent, BaseGoal goal, float utility) {
             logger.Information("Agent {agent} finished planning for goal {goal}, utility value {utility}.", agent.Name, goal.Name, utility);
         }
 
-        private void OnPlanningStarted(Agent agent) {
+        private void OnPlanningStarted(IReadOnlyAgent agent) {
             logger.Information("Agent {agent} started planning.", agent.Name);
         }
 
-        private void OnSensorRun(Agent agent, Sensor sensor) {
+        private void OnSensorRun(IReadOnlyAgent agent, Sensor sensor) {
             logger.Information("Agent {agent} ran sensor {sensor}.", agent.Name, sensor.Name);
         }
     }

@@ -10,11 +10,11 @@ namespace MountainGoap {
     /// <summary>
     /// GOAP agent.
     /// </summary>
-    public class Agent {
+    public class Agent : IAgent {
         /// <summary>
         /// Name of the agent.
         /// </summary>
-        public readonly string Name;
+        public string Name { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Agent"/> class.
@@ -82,6 +82,17 @@ namespace MountainGoap {
 
         private readonly Planner planner;
         private readonly List<ActionPlan> actionSequences = new();
+
+        /// <summary>
+        /// Gets the template this agent was created from, or null for agents not vended by <see cref="AgentRegistry"/>.
+        /// </summary>
+        public AgentTemplate? Template { get; internal set; }
+
+        /// <inheritdoc/>
+        IReadOnlyState IReadOnlyAgent.State => State;
+
+        /// <inheritdoc/>
+        IState IAgent.State => State;
 
         /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
@@ -155,6 +166,21 @@ namespace MountainGoap {
         public void ClearPlan() {
             foreach (var plan in actionSequences) plan.Dispose();
             actionSequences.Clear();
+        }
+
+        /// <summary>
+        /// Resets mutable per-instance state from the given template so this agent can be reused
+        /// from a pool. The planner and its internal object pools are retained across reuses.
+        /// </summary>
+        internal void Reinitialize(AgentTemplate template) {
+            Template = template;
+            State.Clear();
+            foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
+            Goals = new List<BaseGoal>(template.GoalsTemplate);
+            Memory = new Dictionary<string, object?>();
+            IsBusy = false;
+            IsPlanning = false;
+            ClearPlan();
         }
 
         /// <summary>

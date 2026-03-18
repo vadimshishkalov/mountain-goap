@@ -55,6 +55,9 @@ namespace Examples {
                 }
             );
 
+            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
+            // Blocker: name is a per-call parameter — requires either fixing the template name
+            // or adding per-instance name support to AgentRegistry.
             Agent agent = new(
                 name: name,
                 state: new() {
@@ -80,7 +83,7 @@ namespace Examples {
             return agent;
         }
 
-        private static void SeeEnemiesSensorHandler(Agent agent) {
+        private static void SeeEnemiesSensorHandler(IAgent agent) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 5f);
                 if (agent2 != null) agent.State["canSeeEnemies"] = true;
@@ -88,7 +91,7 @@ namespace Examples {
             }
         }
 
-        private static void EnemyProximitySensorHandler(Agent agent) {
+        private static void EnemyProximitySensorHandler(IAgent agent) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 1f);
                 if (agent2 != null) agent.State["nearEnemy"] = true;
@@ -96,7 +99,7 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus KillNearbyEnemyExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus KillNearbyEnemyExecutor(IAgent agent, IAction action) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 1f);
                 if (agent2 != null && agent2.State["hp"] is int hp) {
@@ -108,7 +111,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus GoToEnemyExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus GoToEnemyExecutor(IAgent agent, IAction action) {
             if (action.GetParameter("target") is not Agent target) return ExecutionStatus.Failed;
             if (agent.State["position"] is Vector2 pos1 && target.State["position"] is Vector2 pos2) {
                 var newPos = RpgUtils.MoveTowardsOtherPosition(pos1, pos2);

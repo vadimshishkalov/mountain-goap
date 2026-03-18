@@ -25,7 +25,7 @@ namespace MountainGoapTest
             ActionCollection actions = new() {
                 registry.RegisterAction(
                     name: "Action1",
-                    executor: (Agent agent, MountainGoap.IAction action) => {
+                    executor: (MountainGoap.IAgent agent, MountainGoap.IAction action) => {
                         return ExecutionStatus.Succeeded;
                     },
                     arithmeticPostconditions: new Dictionary<string, object> {

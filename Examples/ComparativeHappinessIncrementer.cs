@@ -15,8 +15,9 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
-            var registry = new ActionRegistry();
-            Agent agent = new(
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
+            agentRegistry.RegisterAgent(
                 name: "Happiness Agent",
                 state: new() {
                     { "happiness", 0 },
@@ -29,14 +30,14 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         arithmeticPostconditions: new() {
                             { "happiness", 1 }
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
                         arithmeticPostconditions: new() {
@@ -45,18 +46,19 @@ namespace Examples {
                     )
                 }
             );
+            Agent agent = agentRegistry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness < 10) {
                 agent.Step();
                 Console.WriteLine($"NEW HAPPINESS IS {agent.State["happiness"]}");
             }
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
+        private static ExecutionStatus SeekHappinessAction(IAgent agent, IAction action) {
             Console.WriteLine("Seeking happiness.");
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, IAction action) {
+        private static ExecutionStatus SeekGreaterHappinessAction(IAgent agent, IAction action) {
             Console.WriteLine("Seeking even greater happiness.");
             return ExecutionStatus.Succeeded;
         }

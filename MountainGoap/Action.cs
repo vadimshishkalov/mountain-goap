@@ -322,7 +322,7 @@ namespace MountainGoap {
             return true;
         }
 
-        private static ExecutionStatus DefaultExecutorCallback(Agent agent, IAction action) {
+        private static ExecutionStatus DefaultExecutorCallback(IAgent agent, IAction action) {
             return ExecutionStatus.Failed;
         }
     }

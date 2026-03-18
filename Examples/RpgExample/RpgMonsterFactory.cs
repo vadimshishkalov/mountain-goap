@@ -21,6 +21,9 @@ namespace Examples {
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, List<Vector2> foodPositions) {
             var registry = new ActionRegistry();
+            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
+            // The mutations below (State setup + Goals/Sensors/Actions.Add) must move into
+            // RegisterAgent before this factory can use instance pooling.
             var agent = RpgCharacterFactory.Create(agents, $"Monster {counter++}");
             Goal eatFood = new(
                 name: "Eat Food",
@@ -69,11 +72,13 @@ namespace Examples {
                     { "eatingFood", true }
                 }
             );
+            // TODO: Move these initial-state assignments into the state template in RegisterAgent.
             agent.State["canSeeFood"] = false;
             agent.State["nearFood"] = false;
             agent.State["eatingFood"] = false;
             agent.State["foodPositions"] = foodPositions;
             agent.State["hp"] = 2;
+            // TODO: Declare these in RegisterAgent (goals/sensors/actions) instead of mutating post-construction.
             agent.Goals.Add(eatFood);
             agent.Sensors.Add(seeFoodSensor);
             agent.Sensors.Add(foodProximitySensor);
@@ -89,7 +94,7 @@ namespace Examples {
             return output;
         }
 
-        private static void SeeFoodSensorHandler(Agent agent) {
+        private static void SeeFoodSensorHandler(IAgent agent) {
             if (agent.State["position"] is Vector2 agentPosition && agent.State["foodPositions"] is List<Vector2> foodPositions) {
                 var foodPosition = GetFoodInRange(agentPosition, foodPositions, 5f);
                 if (foodPosition != null) agent.State["canSeeFood"] = true;
@@ -100,7 +105,7 @@ namespace Examples {
             }
         }
 
-        private static void FoodProximitySensorHandler(Agent agent) {
+        private static void FoodProximitySensorHandler(IAgent agent) {
             if (agent.State["position"] is Vector2 agentPosition && agent.State["foodPositions"] is List<Vector2> foodPositions) {
                 var foodPosition = GetFoodInRange(agentPosition, foodPositions, 1f);
                 if (foodPosition != null) agent.State["nearFood"] = true;
@@ -111,7 +116,7 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus LookForFoodExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus LookForFoodExecutor(IAgent agent, IAction action) {
             if (agent.State["position"] is Vector2 position) {
                 position.X += Rng.Next(-1, 2);
                 position.X = Math.Clamp(position.X, 0, RpgExample.MaxX - 1);
@@ -123,7 +128,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus GoToFoodExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus GoToFoodExecutor(IAgent agent, IAction action) {
             if (action.GetParameter("target") is Vector2 foodPosition && agent.State["position"] is Vector2 position) {
                 position = RpgUtils.MoveTowardsOtherPosition(position, foodPosition);
                 agent.State["position"] = position;
@@ -132,7 +137,7 @@ namespace Examples {
             return ExecutionStatus.Failed;
         }
 
-        private static ExecutionStatus EatExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus EatExecutor(IAgent agent, IAction action) {
             if (agent.State["foodPositions"] is List<Vector2> foodPositions && agent.State["position"] is Vector2 position) {
                 var foodPosition = GetFoodInRange(position, foodPositions, 1f);
                 if (foodPosition != null) {

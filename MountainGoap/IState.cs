@@ -11,5 +11,10 @@ namespace MountainGoap {
         /// Sets the value at the given key.
         /// </summary>
         void Set(string key, object? value);
+
+        /// <summary>
+        /// Gets or sets the value at the given key. Hides the read-only indexer from <see cref="IReadOnlyState"/>.
+        /// </summary>
+        new object? this[string key] { get; set; }
     }
 }

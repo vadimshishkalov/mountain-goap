@@ -9,5 +9,5 @@ namespace MountainGoap {
     /// <param name="agent">Agent executing the action.</param>
     /// <param name="action">Action being executed.</param>
     /// <param name="status">Execution status of the action.</param>
-    public delegate void FinishExecuteActionEvent(Agent agent, IAction action, ExecutionStatus status);
+    public delegate void FinishExecuteActionEvent(IReadOnlyAgent agent, IAction action, ExecutionStatus status);
 }
