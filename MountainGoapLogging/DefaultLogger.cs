@@ -26,8 +26,8 @@ namespace MountainGoapLogging {
             logger = config.CreateLogger();
         }
 
-        private void OnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
-            var cameFromList = new List<ActionNode>();
+        private void OnEvaluatedActionNode(IReadOnlyActionNode node, IReadOnlyDictionary<IReadOnlyActionNode, IReadOnlyActionNode> nodes) {
+            var cameFromList = new List<IReadOnlyActionNode>();
             var traceback = node;
             while (nodes.ContainsKey(traceback) && traceback.Action != nodes[traceback].Action) {
                 cameFromList.Add(traceback);
@@ -65,16 +65,16 @@ namespace MountainGoapLogging {
             logger.Information("Agent {agent} finished executing action {action} with status {status}.", agent.Name, action.Name, status);
         }
 
-        private void OnPlanningFinished(IReadOnlyAgent agent, BaseGoal? goal, float utility) {
+        private void OnPlanningFinished(IReadOnlyAgent agent, IReadOnlyGoal? goal, float utility) {
             if (goal is null) logger.Warning("Agent {agent} finished planning and found no possible goal.", agent.Name);
             else logger.Information("Agent {agent} finished planning with goal {goal}, utility value {utility}.", agent.Name, goal.Name, utility);
         }
 
-        private void OnPlanningStartedForSingleGoal(IReadOnlyAgent agent, BaseGoal goal) {
+        private void OnPlanningStartedForSingleGoal(IReadOnlyAgent agent, IReadOnlyGoal goal) {
             logger.Information("Agent {agent} started planning for goal {goal}.", agent.Name, goal.Name);
         }
 
-        private void OnPlanningFinishedForSingleGoal(IReadOnlyAgent agent, BaseGoal goal, float utility) {
+        private void OnPlanningFinishedForSingleGoal(IReadOnlyAgent agent, IReadOnlyGoal goal, float utility) {
             logger.Information("Agent {agent} finished planning for goal {goal}, utility value {utility}.", agent.Name, goal.Name, utility);
         }
 

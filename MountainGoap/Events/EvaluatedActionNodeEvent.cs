@@ -10,5 +10,5 @@ namespace MountainGoap {
     /// </summary>
     /// <param name="node">Node being evaluated.</param>
     /// <param name="nodes">All nodes in the plan being evaluated.</param>
-    public delegate void EvaluatedActionNodeEvent(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes);
+    public delegate void EvaluatedActionNodeEvent(IReadOnlyActionNode node, IReadOnlyDictionary<IReadOnlyActionNode, IReadOnlyActionNode> nodes);
 }

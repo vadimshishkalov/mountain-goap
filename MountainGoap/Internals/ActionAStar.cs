@@ -17,7 +17,7 @@ namespace MountainGoap {
         private readonly FastPriorityQueue<ActionNode> frontier = new(100000);
         private readonly Dictionary<ActionNode, float> costSoFar = new();
         private readonly Dictionary<ActionNode, int> stepsSoFar = new();
-        private readonly Dictionary<ActionNode, ActionNode> cameFrom = new();
+        private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new();
         private BaseGoal? currentGoal;
 
         /// <summary>
@@ -81,12 +81,12 @@ namespace MountainGoap {
         }
 
         private static void BuildPath(ActionNode finalPoint, ActionPlan plan,
-                                      Dictionary<ActionNode, ActionNode> cameFrom) {
+                                      Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom) {
             var cursor = finalPoint;
             while (cursor != null && cursor.Action != null && cameFrom.ContainsKey(cursor)) {
                 plan.Steps.Add(cursor.Action);
-                var next = cameFrom[cursor]; // capture before mutating hash
-                cursor.Action = null;        // graph.Dispose() will skip null actions
+                var next = (ActionNode)cameFrom[cursor]; // safe: only ActionNode instances are stored
+                cursor.Action = null;                    // graph.Dispose() will skip null actions
                 cursor = next;
             }
             plan.Steps.Reverse();

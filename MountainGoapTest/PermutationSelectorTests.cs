@@ -45,7 +45,7 @@ namespace MountainGoapTest {
                     )
                 }
             );
-            List<object> permutations = selector(agent.State);
+            IReadOnlyList<object> permutations = selector(agent.State);
             Assert.Equal(3, permutations.Count);
             agent.Step(StepMode.OneAction);
             permutations = selector(agent.State);

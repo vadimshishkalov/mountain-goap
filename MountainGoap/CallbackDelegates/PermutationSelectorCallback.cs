@@ -10,5 +10,5 @@ namespace MountainGoap {
     /// </summary>
     /// <param name="state">Current world state.</param>
     /// <returns>A list with each parameter set to be tried for the action.</returns>
-    public delegate List<object> PermutationSelectorCallback(IReadOnlyState state);
+    public delegate IReadOnlyList<object> PermutationSelectorCallback(IReadOnlyState state);
 }

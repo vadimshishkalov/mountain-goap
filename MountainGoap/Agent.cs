@@ -242,7 +242,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="agent">Agent that started planning.</param>
         /// <param name="goal">Goal for which planning was started.</param>
-        internal static void TriggerOnPlanningStartedForSingleGoal(Agent agent, BaseGoal goal) {
+        internal static void TriggerOnPlanningStartedForSingleGoal(Agent agent, IReadOnlyGoal goal) {
             OnPlanningStartedForSingleGoal(agent, goal);
         }
 
@@ -252,7 +252,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that finished planning.</param>
         /// <param name="goal">Goal for which planning was completed.</param>
         /// <param name="utility">Utility of the plan.</param>
-        internal static void TriggerOnPlanningFinishedForSingleGoal(Agent agent, BaseGoal goal, float utility) {
+        internal static void TriggerOnPlanningFinishedForSingleGoal(Agent agent, IReadOnlyGoal goal, float utility) {
             OnPlanningFinishedForSingleGoal(agent, goal, utility);
         }
 
@@ -262,7 +262,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that finished planning.</param>
         /// <param name="goal">Goal that was selected.</param>
         /// <param name="utility">Utility of the plan.</param>
-        internal static void TriggerOnPlanningFinished(Agent agent, BaseGoal? goal, float utility) {
+        internal static void TriggerOnPlanningFinished(Agent agent, IReadOnlyGoal? goal, float utility) {
             OnPlanningFinished(agent, goal, utility);
         }
 
@@ -280,7 +280,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="node">Action node being evaluated.</param>
         /// <param name="nodes">List of nodes in the path that led to this point.</param>
-        internal static void TriggerOnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
+        internal static void TriggerOnEvaluatedActionNode(IReadOnlyActionNode node, IReadOnlyDictionary<IReadOnlyActionNode, IReadOnlyActionNode> nodes) {
             OnEvaluatedActionNode(node, nodes);
         }
 
