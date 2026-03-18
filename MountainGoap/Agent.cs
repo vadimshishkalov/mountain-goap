@@ -84,6 +84,11 @@ namespace MountainGoap {
         private readonly List<ActionPlan> actionSequences = new();
 
         /// <summary>
+        /// Gets the template this agent was created from, or null for agents not vended by <see cref="AgentRegistry"/>.
+        /// </summary>
+        public AgentTemplate? Template { get; internal set; }
+
+        /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
         /// </summary>
         public IReadOnlyList<IActionPlan> CurrentActionSequences => actionSequences;
@@ -155,6 +160,20 @@ namespace MountainGoap {
         public void ClearPlan() {
             foreach (var plan in actionSequences) plan.Dispose();
             actionSequences.Clear();
+        }
+
+        /// <summary>
+        /// Resets mutable per-instance state from the given template so this agent can be reused
+        /// from a pool. The planner and its internal object pools are retained across reuses.
+        /// </summary>
+        internal void Reinitialize(AgentTemplate template) {
+            Template = template;
+            State = CloneStateFromTemplate(template);
+            Goals = new List<BaseGoal>(template.GoalsTemplate);
+            Memory = new Dictionary<string, object?>();
+            IsBusy = false;
+            IsPlanning = false;
+            ClearPlan();
         }
 
         /// <summary>
@@ -234,6 +253,12 @@ namespace MountainGoap {
         /// <param name="plan">New plan for the agent.</param>
         internal static void TriggerOnPlanUpdated(Agent agent, IActionPlan plan) {
             OnPlanUpdated(agent, plan);
+        }
+
+        private static State CloneStateFromTemplate(AgentTemplate template) {
+            var s = new State();
+            foreach (var kvp in template.StateTemplate) s.Set(kvp.Key, kvp.Value);
+            return s;
         }
 
         /// <summary>
