@@ -24,7 +24,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", "non-null value" }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -56,7 +56,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", null }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -88,7 +88,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             return ExecutionStatus.Succeeded;
                         }
                     )
@@ -123,7 +123,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }
@@ -158,7 +158,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", "intermediate value" }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }
@@ -171,7 +171,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", "new value" }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             actionCount++;
                             return ExecutionStatus.Succeeded;
                         }

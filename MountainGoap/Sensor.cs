@@ -39,7 +39,7 @@ namespace MountainGoap {
         /// Runs the sensor during a game loop.
         /// </summary>
         /// <param name="agent">Agent for which the sensor is being run.</param>
-        public void Run(Agent agent) {
+        public void Run(IAgent agent) {
             OnSensorRun(agent, this);
             runCallback(agent);
         }

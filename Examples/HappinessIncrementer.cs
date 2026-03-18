@@ -50,7 +50,7 @@ namespace Examples {
             while (agent.State["happiness"] is int happiness && happiness != 10) agent.Step();
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
+        private static ExecutionStatus SeekHappinessAction(IAgent agent, IAction action) {
             int? happiness = agent.State["happiness"] as int?;
             if (happiness != null) {
                 happiness++;
@@ -61,7 +61,7 @@ namespace Examples {
             return ExecutionStatus.Succeeded;
         }
 
-        private static void EnnuiSensorHandler(Agent agent) {
+        private static void EnnuiSensorHandler(IAgent agent) {
             agent.State["happinessRecentlyIncreased"] = false;
         }
     }

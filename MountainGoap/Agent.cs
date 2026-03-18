@@ -10,11 +10,11 @@ namespace MountainGoap {
     /// <summary>
     /// GOAP agent.
     /// </summary>
-    public class Agent {
+    public class Agent : IAgent {
         /// <summary>
         /// Name of the agent.
         /// </summary>
-        public readonly string Name;
+        public string Name { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Agent"/> class.
@@ -87,6 +87,12 @@ namespace MountainGoap {
         /// Gets the template this agent was created from, or null for agents not vended by <see cref="AgentRegistry"/>.
         /// </summary>
         public AgentTemplate? Template { get; internal set; }
+
+        /// <inheritdoc/>
+        IReadOnlyState IReadOnlyAgent.State => State;
+
+        /// <inheritdoc/>
+        IState IAgent.State => State;
 
         /// <summary>
         /// Gets the chains of actions currently being performed by the agent.
@@ -168,7 +174,8 @@ namespace MountainGoap {
         /// </summary>
         internal void Reinitialize(AgentTemplate template) {
             Template = template;
-            State = CloneStateFromTemplate(template);
+            State.Clear();
+            foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
             Goals = new List<BaseGoal>(template.GoalsTemplate);
             Memory = new Dictionary<string, object?>();
             IsBusy = false;
@@ -253,12 +260,6 @@ namespace MountainGoap {
         /// <param name="plan">New plan for the agent.</param>
         internal static void TriggerOnPlanUpdated(Agent agent, IActionPlan plan) {
             OnPlanUpdated(agent, plan);
-        }
-
-        private static State CloneStateFromTemplate(AgentTemplate template) {
-            var s = new State();
-            foreach (var kvp in template.StateTemplate) s.Set(kvp.Key, kvp.Value);
-            return s;
         }
 
         /// <summary>

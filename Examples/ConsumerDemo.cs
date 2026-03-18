@@ -165,7 +165,7 @@ namespace Examples {
             while (agent.State["food"] is int food && food < 5) agent.Step();
         }
 
-        private static ExecutionStatus GenericExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus GenericExecutor(IAgent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
     }

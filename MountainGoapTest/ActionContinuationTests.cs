@@ -27,7 +27,7 @@ namespace MountainGoapTest {
                         postconditions: new() {
                             { "key", true }
                         },
-                        executor: (Agent agent, IAction action) => {
+                        executor: (IAgent agent, IAction action) => {
                             timesExecuted++;
                             if (agent.State["progress"] is int progress && progress < 3) {
                                 agent.State["progress"] = progress + 1;

@@ -71,11 +71,11 @@ namespace Examples {
             while (agent.State["distanceTraveled"] is int distance && distance < 50) agent.Step();
         }
 
-        private static ExecutionStatus TravelExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus TravelExecutor(IAgent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus GetInCarExecutor(Agent agent, IAction action) {
+        private static ExecutionStatus GetInCarExecutor(IAgent agent, IAction action) {
             return ExecutionStatus.Succeeded;
         }
     }

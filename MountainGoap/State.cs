@@ -53,6 +53,11 @@ namespace MountainGoap {
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)data).GetEnumerator();
 
         /// <summary>
+        /// Removes all entries. Used by <see cref="Agent.Reinitialize"/> to reset state in-place.
+        /// </summary>
+        internal void Clear() => data.Clear();
+
+        /// <summary>
         /// Creates an immutable base-layer snapshot of the current state for use during a planning pass.
         /// </summary>
         internal IPlanningBaseState Snapshot() => pool.RentBaseState(data);

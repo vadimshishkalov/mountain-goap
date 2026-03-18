@@ -53,12 +53,12 @@ namespace Examples {
             }
         }
 
-        private static ExecutionStatus SeekHappinessAction(Agent agent, IAction action) {
+        private static ExecutionStatus SeekHappinessAction(IAgent agent, IAction action) {
             Console.WriteLine("Seeking happiness.");
             return ExecutionStatus.Succeeded;
         }
 
-        private static ExecutionStatus SeekGreaterHappinessAction(Agent agent, IAction action) {
+        private static ExecutionStatus SeekGreaterHappinessAction(IAgent agent, IAction action) {
             Console.WriteLine("Seeking even greater happiness.");
             return ExecutionStatus.Succeeded;
         }

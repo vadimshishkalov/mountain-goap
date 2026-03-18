@@ -21,7 +21,10 @@ namespace MountainGoap {
         }
 
         /// <inheritdoc/>
-        public object? this[string key] => delta.TryGetValue(key, out var value) ? value : baseState.Get(key);
+        public object? this[string key] {
+            get => delta.TryGetValue(key, out var value) ? value : baseState.Get(key);
+            set => delta[key] = value;
+        }
 
         /// <inheritdoc/>
         public object? Get(string key) {
