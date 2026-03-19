@@ -6,7 +6,7 @@ namespace MountainGoap {
     /// <summary>
     /// Internal interface for the immutable base-layer snapshot taken at the start of each planning pass.
     /// Provides a <see cref="Snapshot"/> factory that produces the first planning node state,
-    /// and a <see cref="Return"/> method to release the snapshot back to the pool when the pass is done.
+    /// and releases the snapshot back to the pool when disposed.
     /// </summary>
     internal interface IPlanningBaseState : IReadOnlyState, IDisposable {
         /// <summary>

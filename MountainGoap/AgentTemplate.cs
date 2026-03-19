@@ -8,7 +8,7 @@ namespace MountainGoap {
 
     /// <summary>
     /// Immutable design-time descriptor for an agent type. Registered once via
-    /// <see cref="AgentRegistry.RegisterAgent"/> and shared across all runtime instances
+    /// <see cref="Registry.RegisterAgent"/> and shared across all runtime instances
     /// of that type.
     /// </summary>
     internal class AgentTemplate : IAgentTemplate {

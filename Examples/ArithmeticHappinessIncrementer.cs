@@ -34,17 +34,14 @@ namespace Examples {
                         executor: SeekHappinessAction,
                         arithmeticPostconditions: new() {
                             { "happiness", 1 }
-                        }
-                    ),
+                        }),
                     registry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
                         arithmeticPostconditions: new() {
                             { "happiness", 2 }
-                        }
-                    )
-                }
-            );
+                        })
+                });
             IAgent agent = registry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness != 10) {
                 agent.Step();

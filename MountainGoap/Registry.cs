@@ -65,6 +65,13 @@ namespace MountainGoap {
         /// the name is already registered. The provided <paramref name="configuration"/> overrides
         /// the registry-level default for this template only; pass <c>null</c> to use the default.
         /// </summary>
+        /// <param name="name">Unique name identifying this agent type within the registry.</param>
+        /// <param name="state">Initial state values copied into each runtime instance.</param>
+        /// <param name="goals">Goals shared across all runtime instances of this template.</param>
+        /// <param name="actions">Actions available to runtime instances of this template.</param>
+        /// <param name="sensors">Sensors shared across all runtime instances of this template.</param>
+        /// <param name="configuration">Behavioural configuration for this template; overrides the registry default.</param>
+        /// <returns>The registered <see cref="IAgentTemplate"/>.</returns>
         public IAgentTemplate RegisterAgent(
             string name,
             State? state = null,
@@ -96,6 +103,8 @@ namespace MountainGoap {
         /// Returns a runtime instance for the named agent template. Draws from the pool when
         /// available (reinitialising to the template's default state); otherwise creates a new agent.
         /// </summary>
+        /// <param name="name">The name of a previously registered agent template.</param>
+        /// <returns>A ready-to-use <see cref="IAgent"/> instance.</returns>
         public IAgent GetInstance(string name) {
             if (!agentTemplates.TryGetValue(name, out var template))
                 throw new InvalidOperationException($"Agent template '{name}' is not registered. Call RegisterAgent first.");

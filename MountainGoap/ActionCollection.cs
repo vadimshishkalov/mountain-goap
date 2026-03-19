@@ -10,7 +10,7 @@ namespace MountainGoap {
     /// An ordered collection of <see cref="Action"/> templates that maintains an inverse index
     /// from state keys to the actions whose preconditions reference those keys. Used on
     /// <see cref="Agent.Actions"/> and passed (as <see cref="IReadOnlyActionIndex"/>) into the
-    /// planning subsystem so that <see cref="Internals.ActionGraph"/> can narrow the candidate
+    /// planning subsystem so that <see cref="ActionGraph"/> can narrow the candidate
     /// set per node without scanning every template.
     /// Supports collection-initializer syntax: <c>new ActionCollection { action1, action2 }</c>.
     /// </summary>

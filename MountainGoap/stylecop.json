@@ -9,7 +9,9 @@
   "settings": {
     "documentationRules": {
       "companyName": "Chris Muller",
-      "copyrightText": "Copyright (c) Chris Muller. All rights reserved."
+      "copyrightText": "Copyright (c) Chris Muller. All rights reserved.",
+      "documentInternalElements": false,
+      "documentPrivateElements": false
     }
   }
 }
