@@ -25,13 +25,7 @@ namespace MountainGoap {
         /// <summary>Gets the sensors shared across all runtime instances of this template.</summary>
         IReadOnlyList<Sensor> Sensors { get; }
 
-        /// <summary>Gets the maximum plan cost forwarded to each instance.</summary>
-        float CostMaximum { get; }
-
-        /// <summary>Gets the maximum plan step count forwarded to each instance.</summary>
-        int StepMaximum { get; }
-
-        /// <summary>Gets the neighbor lookup strategy forwarded to each instance.</summary>
-        NeighborLookupMode NeighborLookupMode { get; }
+        /// <summary>Gets the behavioural configuration forwarded to each runtime instance.</summary>
+        AgentConfiguration Configuration { get; }
     }
 }

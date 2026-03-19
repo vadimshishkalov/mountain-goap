@@ -33,13 +33,7 @@ namespace MountainGoap {
         public IReadOnlyList<Sensor> Sensors { get; }
 
         /// <inheritdoc/>
-        public float CostMaximum { get; }
-
-        /// <inheritdoc/>
-        public int StepMaximum { get; }
-
-        /// <inheritdoc/>
-        public NeighborLookupMode NeighborLookupMode { get; }
+        public AgentConfiguration Configuration { get; }
 
         internal AgentTemplate(
             string name,
@@ -47,18 +41,14 @@ namespace MountainGoap {
             List<BaseGoal> goals,
             ActionCollection actions,
             List<Sensor> sensors,
-            float costMaximum,
-            int stepMaximum,
-            NeighborLookupMode neighborLookupMode) {
+            AgentConfiguration configuration) {
             Name = name;
             StateTemplate = stateTemplate;
             Goals = goals.Cast<IReadOnlyGoal>().ToList().AsReadOnly();
             ActionCollection = actions;
             Actions = actions;
             Sensors = sensors.AsReadOnly();
-            CostMaximum = costMaximum;
-            StepMaximum = stepMaximum;
-            NeighborLookupMode = neighborLookupMode;
+            Configuration = configuration;
         }
     }
 }

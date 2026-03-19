@@ -3,13 +3,13 @@
 // </copyright>
 
 namespace MountainGoap {
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// Stack-backed pool for <see cref="ActionPlan"/> instances.
     /// </summary>
     internal class ActionPlanPool : IActionPlanPool {
-        private readonly Stack<ActionPlan> pool = new();
+        private readonly ConcurrentStack<ActionPlan> pool = new();
 
         ActionPlan IActionPlanPool.Rent(IActionNodePool nodePool) {
             var plan = pool.TryPop(out var p) ? p : new ActionPlan(this);

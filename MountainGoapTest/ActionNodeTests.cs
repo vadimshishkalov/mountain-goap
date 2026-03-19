@@ -4,9 +4,8 @@ namespace MountainGoapTest {
     public class AgentTests {
         [Fact]
         public void ItHandlesInitialNullStateValuesCorrectly() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            var template = agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", null }
@@ -19,7 +18,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", null }
                         },
@@ -39,9 +38,8 @@ namespace MountainGoapTest {
 
         [Fact]
         public void ItHandlesNullGoalsCorrectly() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            var template = agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", "non-null value" }
@@ -54,7 +52,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "non-null value" }
                         },
@@ -74,9 +72,8 @@ namespace MountainGoapTest {
 
         [Fact]
         public void ItHandlesNonNullStateValuesCorrectly() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            var template = agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", "value" }
@@ -89,7 +86,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -111,10 +108,9 @@ namespace MountainGoapTest {
 
         [Fact]
         public void ItExecutesOneActionInOneActionStepMode() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
+            var registry = new Registry();
             var actionCount = 0;
-            var template = agentRegistry.RegisterAgent(
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", "value" }
@@ -127,7 +123,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -148,10 +144,9 @@ namespace MountainGoapTest {
 
         [Fact]
         public void ItExecutesAllActionsInAllActionsStepMode() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
+            var registry = new Registry();
             var actionCount = 0;
-            var template = agentRegistry.RegisterAgent(
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", "value" }
@@ -164,7 +159,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Step 1",
                         preconditions: new() {
                             { "key", "value" }
@@ -177,7 +172,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Step 2",
                         preconditions: new() {
                             { "key", "intermediate value" }
