@@ -6,14 +6,15 @@ Generic C# GOAP (Goal Oriented Action Planning) library for creating AI agents t
 
 Mountain GOAP favors composition over inheritance, allowing you to create agents from a series of callbacks. In addition, Mountain GOAP's agents support multiple weighted goals and will attempt to find the greatest utility among a series of goals.
 
-1. [Quickstart](#quickstart)
+1. [What is this fork for](#what-is-this-fork-for)
+2. [Quickstart](#quickstart)
     1. [Using distributable](#using-distributable)
     2. [Using distributable in Unity](#using-distributable-in-unity)
     3. [Using NuGet package](#using-nuget-package)
     4. [Using as a Unity package](#using-as-a-unity-package)
     5. [Using the code directly](#using-the-code-directly)
     6. [Using the library after installation](#using-the-library-after-installation)
-2. [Concepts & API](#concepts--api)
+3. [Concepts & API](#concepts--api)
     1. [Agents](#agents)
         1. [Agent state](#agent-state)
     2. [Goals](#goals)
@@ -29,16 +30,28 @@ Mountain GOAP favors composition over inheritance, allowing you to create agents
     7. [State mutators](#state-mutators)
     8. [State checkers](#state-checkers)
     9. [Full API Docs](#full-api-docs)
-3. [Events](#events)
+4. [Events](#events)
     1. [Agent events](#agent-events)
     2. [Action events](#action-events)
     3. [Sensor events](#sensor-events)
-4. [Logger](#logger)
-5. [Examples](#examples)
-6. [Project structure](#project-structure)
-7. [Roadmap](#roadmap)
-8. [Other open source GOAP projects](#other-open-source-goap-projects)
-9. [License Acknowledgements](#license-acknowledgements)
+5. [Logger](#logger)
+6. [Examples](#examples)
+7. [Project structure](#project-structure)
+8. [Roadmap](#roadmap)
+9. [Other open source GOAP projects](#other-open-source-goap-projects)
+10. [License Acknowledgements](#license-acknowledgements)
+
+## What Is This Fork For
+
+This fork optimizes Mountain GOAP for long-running, high-throughput environments (game servers, simulations) where GC pauses and per-frame allocations are unacceptable.
+
+Key changes from upstream:
+
+- **Delta-based planning state** — During A* expansion, nodes share a read-only base snapshot and store only their changes, avoiding full-state copies at every step.
+- **Pipeline-wide object pooling** — All transient objects created during planning — nodes, graphs, plans, state layers — are pooled and reused across planning passes, eliminating per-cycle allocations.
+- **Indexed action lookup** — Actions are indexed by the state keys they touch, so candidate filtering is a key lookup instead of a linear scan.
+- **Design-time / runtime separation** — Actions and agents are split into immutable templates (defined once, shared) and lightweight runtime instances (carrying only mutable state), so configuration is never duplicated and instances can be pooled.
+- **Dedicated planner worker pool** — Planning runs on a fixed-size worker pool, keeping action execution on the caller thread without blocking.
 
 ## Quickstart
 
