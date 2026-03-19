@@ -2,7 +2,7 @@
 
 Namespace: MountainGoap
 
-Read-only view of an action node in an action graph. This replaces the previously public `ActionNode` class, which is now internal.
+Read-only view of an action node in an action graph. Replaces the previously public `ActionNode` class.
 
 ```csharp
 public interface IReadOnlyActionNode

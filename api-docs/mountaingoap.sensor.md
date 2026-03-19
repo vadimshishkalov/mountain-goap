@@ -17,7 +17,7 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object) 
 Name of the sensor.
 
 ```csharp
-public string Name;
+public readonly string Name;
 ```
 
 ## Constructors
@@ -27,31 +27,28 @@ public string Name;
 Initializes a new instance of the [Sensor](./mountaingoap.sensor.md) class.
 
 ```csharp
-public Sensor(SensorRunCallback runCallback, string name)
+public Sensor(SensorRunCallback runCallback, string? name = null)
 ```
 
 #### Parameters
 
-`runCallback` [SensorRunCallback](./mountaingoap.sensorruncallback.md)<br>
-Callback to be executed when the sensor runs.
+`runCallback` SensorRunCallback — Callback to be executed when the sensor runs.
 
-`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)<br>
-Name of the sensor.
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)? — Name of the sensor.
 
 ## Methods
 
-### **Run(Agent)**
+### **Run(IAgent)**
 
 Runs the sensor during a game loop.
 
 ```csharp
-public void Run(Agent agent)
+public void Run(IAgent agent)
 ```
 
 #### Parameters
 
-`agent` [Agent](./mountaingoap.agent.md)<br>
-Agent for which the sensor is being run.
+`agent` [IAgent](./mountaingoap.iagent.md) — Agent for which the sensor is being run.
 
 ## Events
 
@@ -60,5 +57,5 @@ Agent for which the sensor is being run.
 Event that triggers when a sensor runs.
 
 ```csharp
-public static event SensorRunEvent OnSensorRun;
+public static event SensorRunEvent? OnSensorRun;
 ```
