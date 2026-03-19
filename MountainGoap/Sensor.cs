@@ -33,14 +33,14 @@ namespace MountainGoap {
         /// <summary>
         /// Event that triggers when a sensor runs.
         /// </summary>
-        public static event SensorRunEvent OnSensorRun = (agent, sensor) => { };
+        public static event SensorRunEvent? OnSensorRun;
 
         /// <summary>
         /// Runs the sensor during a game loop.
         /// </summary>
         /// <param name="agent">Agent for which the sensor is being run.</param>
         public void Run(IAgent agent) {
-            OnSensorRun(agent, this);
+            OnSensorRun?.Invoke(agent, this);
             runCallback(agent);
         }
     }

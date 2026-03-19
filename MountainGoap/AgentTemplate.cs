@@ -4,7 +4,6 @@
 
 namespace MountainGoap {
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Immutable design-time descriptor for an agent type. Registered once via
@@ -44,7 +43,9 @@ namespace MountainGoap {
             AgentConfiguration configuration) {
             Name = name;
             StateTemplate = stateTemplate;
-            Goals = goals.Cast<IReadOnlyGoal>().ToList().AsReadOnly();
+            var goalList = new List<IReadOnlyGoal>(goals.Count);
+            foreach (var g in goals) goalList.Add(g);
+            Goals = goalList.AsReadOnly();
             ActionCollection = actions;
             Actions = actions;
             Sensors = sensors.AsReadOnly();

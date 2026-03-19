@@ -33,45 +33,46 @@ namespace MountainGoap {
         /// <summary>
         /// Event that fires when the agent executes a step of work.
         /// </summary>
-        public static event AgentStepEvent OnAgentStep = (agent) => { };
+        public static event AgentStepEvent? OnAgentStep;
 
         /// <summary>
         /// Event that fires when an action sequence completes.
         /// </summary>
-        public static event AgentActionSequenceCompletedEvent OnAgentActionSequenceCompleted = (agent) => { };
+        public static event AgentActionSequenceCompletedEvent? OnAgentActionSequenceCompleted;
 
         /// <summary>
         /// Event that fires when planning begins.
         /// </summary>
-        public static event PlanningStartedEvent OnPlanningStarted = (agent) => { };
+        public static event PlanningStartedEvent? OnPlanningStarted;
 
         /// <summary>
         /// Event that fires when planning for a single goal starts.
         /// </summary>
-        public static event PlanningStartedForSingleGoalEvent OnPlanningStartedForSingleGoal = (agent, goal) => { };
+        public static event PlanningStartedForSingleGoalEvent? OnPlanningStartedForSingleGoal;
 
         /// <summary>
         /// Event that fires when planning for a single goal finishes.
         /// </summary>
-        public static event PlanningFinishedForSingleGoalEvent OnPlanningFinishedForSingleGoal = (agent, goal, utility) => { };
+        public static event PlanningFinishedForSingleGoalEvent? OnPlanningFinishedForSingleGoal;
 
         /// <summary>
         /// Event that fires when planning finishes.
         /// </summary>
-        public static event PlanningFinishedEvent OnPlanningFinished = (agent, goal, utility) => { };
+        public static event PlanningFinishedEvent? OnPlanningFinished;
 
         /// <summary>
         /// Event that fires when a new plan is finalized for the agent.
         /// </summary>
-        public static event PlanUpdatedEvent OnPlanUpdated = (agent, actionList) => { };
+        public static event PlanUpdatedEvent? OnPlanUpdated;
 
         /// <summary>
         /// Event that fires when the pathfinder evaluates a single node in the action graph.
         /// </summary>
-        public static event EvaluatedActionNodeEvent OnEvaluatedActionNode = (node, nodes) => { };
+        public static event EvaluatedActionNodeEvent? OnEvaluatedActionNode;
 
         private readonly Planner planner;
         private readonly List<ActionPlan> actionSequences = new();
+        private readonly List<ActionPlan> cullableSequences = new();
         private volatile bool _isBusy;
         private volatile bool _isPlanning;
 
@@ -146,7 +147,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="mode">Mode to be used for executing the step of work.</param>
         public void Step(StepMode mode = StepMode.Default) {
-            OnAgentStep(this);
+            OnAgentStep?.Invoke(this);
             foreach (var sensor in Sensors) sensor.Run(this);
             if (mode == StepMode.Default) {
                 StepAsync();
@@ -223,7 +224,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="agent">Agent that started planning.</param>
         internal static void TriggerOnPlanningStarted(Agent agent) {
-            OnPlanningStarted(agent);
+            OnPlanningStarted?.Invoke(agent);
         }
 
         /// <summary>
@@ -232,7 +233,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that started planning.</param>
         /// <param name="goal">Goal for which planning was started.</param>
         internal static void TriggerOnPlanningStartedForSingleGoal(Agent agent, IReadOnlyGoal goal) {
-            OnPlanningStartedForSingleGoal(agent, goal);
+            OnPlanningStartedForSingleGoal?.Invoke(agent, goal);
         }
 
         /// <summary>
@@ -242,7 +243,7 @@ namespace MountainGoap {
         /// <param name="goal">Goal for which planning was completed.</param>
         /// <param name="utility">Utility of the plan.</param>
         internal static void TriggerOnPlanningFinishedForSingleGoal(Agent agent, IReadOnlyGoal goal, float utility) {
-            OnPlanningFinishedForSingleGoal(agent, goal, utility);
+            OnPlanningFinishedForSingleGoal?.Invoke(agent, goal, utility);
         }
 
         /// <summary>
@@ -252,7 +253,7 @@ namespace MountainGoap {
         /// <param name="goal">Goal that was selected.</param>
         /// <param name="utility">Utility of the plan.</param>
         internal static void TriggerOnPlanningFinished(Agent agent, IReadOnlyGoal? goal, float utility) {
-            OnPlanningFinished(agent, goal, utility);
+            OnPlanningFinished?.Invoke(agent, goal, utility);
         }
 
         /// <summary>
@@ -261,7 +262,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent for which the plan was updated.</param>
         /// <param name="plan">New plan for the agent.</param>
         internal static void TriggerOnPlanUpdated(Agent agent, IActionPlan plan) {
-            OnPlanUpdated(agent, plan);
+            OnPlanUpdated?.Invoke(agent, plan);
         }
 
         /// <summary>
@@ -270,7 +271,7 @@ namespace MountainGoap {
         /// <param name="node">Action node being evaluated.</param>
         /// <param name="nodes">List of nodes in the path that led to this point.</param>
         internal static void TriggerOnEvaluatedActionNode(IReadOnlyActionNode node, IReadOnlyDictionary<IReadOnlyActionNode, IReadOnlyActionNode> nodes) {
-            OnEvaluatedActionNode(node, nodes);
+            OnEvaluatedActionNode?.Invoke(node, nodes);
         }
 
         /// <summary>
@@ -290,7 +291,7 @@ namespace MountainGoap {
         /// </summary>
         private void Execute() {
             if (actionSequences.Count > 0) {
-                List<ActionPlan> cullableSequences = new();
+                cullableSequences.Clear();
                 foreach (var sequence in actionSequences) {
                     if (sequence.Steps.Count > 0) {
                         var executionStatus = sequence.Steps[0].Execute(this);
@@ -301,8 +302,9 @@ namespace MountainGoap {
                 foreach (var sequence in cullableSequences) {
                     actionSequences.Remove(sequence);
                     sequence.Dispose();
-                    OnAgentActionSequenceCompleted(this);
+                    OnAgentActionSequenceCompleted?.Invoke(this);
                 }
+                cullableSequences.Clear();
             }
             else IsBusy = false;
         }
