@@ -30,14 +30,10 @@ namespace Examples {
             List<Agent> agents = new();
             List<Vector2> foodPositions = new();
             var player = RpgCharacterFactory.Create(agents);
-            // TODO: Move "faction" into the state template in RpgCharacterFactory.RegisterAgent.
-            player.State["faction"] = "player";
             agents.Add(player);
             for (int i = 0; i < 20; i++) foodPositions.Add(new Vector2(random.Next(0, MaxX), random.Next(0, MaxY)));
             for (int i = 0; i < 10; i++) {
-                var monster = RpgMonsterFactory.Create(agents, foodPositions);
-                // TODO: Move "position" into the state template in RpgMonsterFactory.RegisterAgent.
-                monster.State["position"] = new Vector2(random.Next(0, MaxX), random.Next(0, MaxY));
+                var monster = RpgMonsterFactory.Create(agents, foodPositions, new Vector2(random.Next(0, MaxX), random.Next(0, MaxY)));
                 agents.Add(monster);
             }
             for (int i = 0; i < 600; i++) {
