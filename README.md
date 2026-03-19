@@ -7,14 +7,15 @@ Generic C# GOAP (Goal Oriented Action Planning) library for creating AI agents t
 Mountain GOAP favors composition over inheritance, allowing you to create agents from a series of callbacks. In addition, Mountain GOAP's agents support multiple weighted goals and will attempt to find the greatest utility among a series of goals.
 
 1. [What is this fork for](#what-is-this-fork-for)
-2. [Quickstart](#quickstart)
+2. [API migration from upstream](#api-migration-from-upstream)
+3. [Quickstart](#quickstart)
     1. [Using distributable](#using-distributable)
     2. [Using distributable in Unity](#using-distributable-in-unity)
     3. [Using NuGet package](#using-nuget-package)
     4. [Using as a Unity package](#using-as-a-unity-package)
     5. [Using the code directly](#using-the-code-directly)
     6. [Using the library after installation](#using-the-library-after-installation)
-3. [Concepts & API](#concepts--api)
+4. [Concepts & API](#concepts--api)
     1. [Agents](#agents)
         1. [Agent state](#agent-state)
     2. [Goals](#goals)
@@ -30,16 +31,16 @@ Mountain GOAP favors composition over inheritance, allowing you to create agents
     7. [State mutators](#state-mutators)
     8. [State checkers](#state-checkers)
     9. [Full API Docs](#full-api-docs)
-4. [Events](#events)
+5. [Events](#events)
     1. [Agent events](#agent-events)
     2. [Action events](#action-events)
     3. [Sensor events](#sensor-events)
-5. [Logger](#logger)
-6. [Examples](#examples)
-7. [Project structure](#project-structure)
-8. [Roadmap](#roadmap)
-9. [Other open source GOAP projects](#other-open-source-goap-projects)
-10. [License Acknowledgements](#license-acknowledgements)
+6. [Logger](#logger)
+7. [Examples](#examples)
+8. [Project structure](#project-structure)
+9. [Roadmap](#roadmap)
+10. [Other open source GOAP projects](#other-open-source-goap-projects)
+11. [License Acknowledgements](#license-acknowledgements)
 
 ## What Is This Fork For
 
@@ -52,6 +53,89 @@ Key changes from upstream:
 - **Indexed action lookup** — Actions are indexed by the state keys they touch, so candidate filtering is a key lookup instead of a linear scan.
 - **Design-time / runtime separation** — Actions and agents are split into immutable templates (defined once, shared) and lightweight runtime instances (carrying only mutable state), so configuration is never duplicated and instances can be pooled.
 - **Dedicated planner worker pool** — Planning runs on a fixed-size worker pool, keeping action execution on the caller thread without blocking.
+
+## API Migration from Upstream
+
+### Agent and action creation
+
+Agents and actions are now created through a `Registry` instead of direct constructors.
+
+**Before (upstream):**
+
+```csharp
+Action seekHappiness = new(
+    name: "Seek Happiness",
+    executor: SeekHappinessAction,
+    preconditions: new() { { "happinessRecentlyIncreased", false } },
+    postconditions: new() { { "happinessRecentlyIncreased", true } });
+
+Agent agent = new(
+    name: "Happiness Agent",
+    state: new() { { "happiness", 0 } },
+    goals: new() { goal },
+    actions: new() { seekHappiness });
+```
+
+**After (this fork):**
+
+```csharp
+var registry = new Registry();
+
+var seekHappiness = registry.RegisterAction(
+    name: "Seek Happiness",
+    executor: SeekHappinessAction,
+    preconditions: new() { { "happinessRecentlyIncreased", false } },
+    postconditions: new() { { "happinessRecentlyIncreased", true } });
+
+registry.RegisterAgent(
+    name: "Happiness Agent",
+    state: new() { { "happiness", 0 } },
+    goals: new() { goal },
+    actions: new() { seekHappiness });
+
+IAgent agent = registry.GetInstance("Happiness Agent");
+```
+
+Actions registered with the same name are deduplicated. Agent instances can be returned to the pool with `registry.ReturnInstance(agent)`.
+
+### Callback signatures
+
+All callbacks now receive interfaces instead of concrete types:
+
+| Callback | Before | After |
+|---|---|---|
+| `ExecutorCallback` | `(Agent, Action)` | `(IAgent, IAction)` |
+| `CostCallback` | `(Action, ConcurrentDictionary<string, object?>)` | `(IReadOnlyAction, IReadOnlyState)` |
+| `SensorRunCallback` | `(Agent)` | `(IAgent)` |
+| `StateMutatorCallback` | `(Action, ConcurrentDictionary<string, object?>)` | `(IReadOnlyAction, IState)` |
+| `StateCheckerCallback` | `(Action, ConcurrentDictionary<string, object?>)` | `(IReadOnlyAction, IReadOnlyState)` |
+
+Many properties and collections that were previously mutable are now exposed through read-only interfaces (`IReadOnlyAgent`, `IReadOnlyAction`, `IReadOnlyState`, `IReadOnlyGoal`). This is intentional — there is no mutable equivalent for these access paths. Code that previously modified agent or action fields directly must be restructured to work within the designated write points (executors, sensors, state mutators).
+
+### State access
+
+Agent state is no longer a raw `ConcurrentDictionary`. Reading works the same way via indexer; writing uses `Set()`:
+
+```csharp
+// read (unchanged)
+var value = agent.State["key"];
+
+// write
+agent.State.Set("key", value);   // new
+```
+
+### Pooling
+
+Object pooling is always active — each agent owns its own pools by default. Pass a shared `PoolManager` to the `Registry` to let multiple agents draw from the same pools:
+
+```csharp
+var pool = new PoolManager();
+var registry = new Registry(poolManager: pool);
+```
+
+### Async planning (optional)
+
+`Step(StepMode.Default)` now offloads planning to a background worker pool. For synchronous planning, use `agent.Plan()` or `Step(StepMode.OneAction)`.
 
 ## Quickstart
 
