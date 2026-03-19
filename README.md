@@ -109,6 +109,8 @@ All callbacks now receive interfaces instead of concrete types:
 | `SensorRunCallback` | `(Agent)` | `(IAgent)` |
 | `StateMutatorCallback` | `(Action, ConcurrentDictionary<string, object?>)` | `(IReadOnlyAction, IState)` |
 | `StateCheckerCallback` | `(Action, ConcurrentDictionary<string, object?>)` | `(IReadOnlyAction, IReadOnlyState)` |
+| `PermutationSelectorCallback` | `(ConcurrentDictionary<string, object?>)` | `(IReadOnlyState)` |
+| `StateCostDeltaMultiplierCallback` | `(Action, string)` | `(IReadOnlyAction?, string)` |
 
 Many properties and collections that were previously mutable are now exposed through read-only interfaces (`IReadOnlyAgent`, `IReadOnlyAction`, `IReadOnlyState`, `IReadOnlyGoal`). This is intentional — there is no mutable equivalent for these access paths. Code that previously modified agent or action fields directly must be restructured to work within the designated write points (executors, sensors, state mutators).
 

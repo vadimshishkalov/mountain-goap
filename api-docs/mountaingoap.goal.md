@@ -17,7 +17,7 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object) 
 Name of the goal.
 
 ```csharp
-public string Name;
+public readonly string Name;
 ```
 
 ## Constructors
@@ -27,7 +27,7 @@ public string Name;
 Initializes a new instance of the [Goal](./mountaingoap.goal.md) class.
 
 ```csharp
-public Goal(string name, float weight, Dictionary<string, object> desiredState)
+public Goal(string? name = null, float weight = 1f, Dictionary<string, object?>? desiredState = null)
 ```
 
 #### Parameters

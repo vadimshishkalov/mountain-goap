@@ -17,7 +17,7 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object) 
 Name of the goal.
 
 ```csharp
-public string Name;
+public readonly string Name;
 ```
 
 ## Constructors
@@ -27,7 +27,7 @@ public string Name;
 Initializes a new instance of the [ComparativeGoal](./mountaingoap.comparativegoal.md) class.
 
 ```csharp
-public ComparativeGoal(string name, float weight, Dictionary<string, ComparisonValuePair> desiredState)
+public ComparativeGoal(string? name = null, float weight = 1f, Dictionary<string, ComparisonValuePair>? desiredState = null)
 ```
 
 #### Parameters

@@ -14,32 +14,24 @@ Inheritance [Object](https://docs.microsoft.com/en-us/dotnet/api/system.object) 
 
 ### **Value**
 
-Gets or sets the value to be compared against.
+Gets the value to be compared against.
 
 ```csharp
-public object Value { get; set; }
+public object? Value { get; init; }
 ```
 
 #### Property Value
 
-[Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)<br>
+[Object](https://docs.microsoft.com/en-us/dotnet/api/system.object)?
 
 ### **Operator**
 
-Gets or sets the operator to be used for comparison.
+Gets the operator to be used for comparison.
 
 ```csharp
-public ComparisonOperator Operator { get; set; }
+public ComparisonOperator Operator { get; init; }
 ```
 
 #### Property Value
 
-[ComparisonOperator](./mountaingoap.comparisonoperator.md)<br>
-
-## Constructors
-
-### **ComparisonValuePair()**
-
-```csharp
-public ComparisonValuePair()
-```
+[ComparisonOperator](./mountaingoap.comparisonoperator.md)
