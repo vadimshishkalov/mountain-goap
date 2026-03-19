@@ -4,33 +4,24 @@
 
 namespace MountainGoap {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Immutable design-time descriptor for an agent type. Registered once via
     /// <see cref="AgentRegistry.RegisterAgent"/> and shared across all runtime instances
     /// of that type.
     /// </summary>
-    public class AgentTemplate {
-        /// <summary>
-        /// Gets the name used to identify this agent type in the registry.
-        /// </summary>
+    internal class AgentTemplate : IAgentTemplate {
+        /// <inheritdoc/>
         public string Name { get; }
 
-        /// <summary>
-        /// Shallow snapshot of the initial state taken at registration time.
-        /// Copied into each new <see cref="AgentInstance"/> on construction or reinitialisation.
-        /// </summary>
-        internal IReadOnlyDictionary<string, object?> StateTemplate { get; }
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, object?> StateTemplate { get; }
 
-        /// <summary>
-        /// Goals shared across all runtime instances of this template.
-        /// </summary>
-        public IReadOnlyList<BaseGoal> Goals { get; }
+        /// <inheritdoc/>
+        public IReadOnlyList<IReadOnlyGoal> Goals { get; }
 
-        /// <summary>
-        /// Read-only view of the shared action collection. Use <see cref="ActionCollection"/>
-        /// (internal) when Add access is required.
-        /// </summary>
+        /// <inheritdoc/>
         public IReadOnlyActionIndex Actions { get; }
 
         /// <summary>
@@ -38,24 +29,16 @@ namespace MountainGoap {
         /// </summary>
         internal ActionCollection ActionCollection { get; }
 
-        /// <summary>
-        /// Sensors shared across all runtime instances of this template.
-        /// </summary>
+        /// <inheritdoc/>
         public IReadOnlyList<Sensor> Sensors { get; }
 
-        /// <summary>
-        /// Maximum plan cost forwarded to each instance.
-        /// </summary>
+        /// <inheritdoc/>
         public float CostMaximum { get; }
 
-        /// <summary>
-        /// Maximum plan step count forwarded to each instance.
-        /// </summary>
+        /// <inheritdoc/>
         public int StepMaximum { get; }
 
-        /// <summary>
-        /// Neighbor lookup strategy forwarded to each instance.
-        /// </summary>
+        /// <inheritdoc/>
         public NeighborLookupMode NeighborLookupMode { get; }
 
         internal AgentTemplate(
@@ -69,7 +52,7 @@ namespace MountainGoap {
             NeighborLookupMode neighborLookupMode) {
             Name = name;
             StateTemplate = stateTemplate;
-            Goals = goals.AsReadOnly();
+            Goals = goals.Cast<IReadOnlyGoal>().ToList().AsReadOnly();
             ActionCollection = actions;
             Actions = actions;
             Sensors = sensors.AsReadOnly();

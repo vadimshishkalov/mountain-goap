@@ -25,9 +25,11 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void CandidatePromotionFindsCorrectPlan() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 }
                 },
@@ -39,7 +41,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "A",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -48,7 +50,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "B",
                         preconditions: new() { { "x", 2 } },
                         postconditions: new() { { "x", 3 } },
@@ -60,6 +62,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "B" }, executedActions);
             Assert.Equal(3, agent.State["x"]);
@@ -74,10 +77,12 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void FailedCandidateNotPassedToChildren() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
             var bChecked = 0;
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 },
                     { "y", 0 }
@@ -90,7 +95,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "A",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -99,7 +104,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "B",
                         preconditions: new() { { "y", 99 } },
                         postconditions: new() { { "y", 100 } },
@@ -112,7 +117,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "C",
                         preconditions: new() { { "x", 2 } },
                         postconditions: new() { { "x", 3 } },
@@ -124,6 +129,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "C" }, executedActions);
             Assert.DoesNotContain("B", executedActions);
@@ -137,9 +143,11 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void DeltaInvalidatesPossibleTemplate() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 }
                 },
@@ -151,7 +159,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "A",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -160,7 +168,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "B",
                         preconditions: new() { { "x", 2 } },
                         postconditions: new() { { "x", 3 } },
@@ -172,6 +180,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "A", "B" }, executedActions);
             Assert.Equal(3, agent.State["x"]);
@@ -186,10 +195,12 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void StateCheckerCalledForPossibleTemplates() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
             var stateCheckerCalls = 0;
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 },
                     { "y", 0 }
@@ -203,7 +214,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "SetX",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 }, { "y", 1 } },
@@ -212,7 +223,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Guarded",
                         postconditions: new() { { "y", 1 } },
                         stateChecker: (action, state) => {
@@ -227,6 +238,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.True(stateCheckerCalls > 0, "stateChecker should have been called");
             Assert.Contains("SetX", executedActions);
@@ -241,9 +253,11 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void PossibleTemplateExpandsWithoutRecheckingStaticPreconditions() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 },
                     { "w", 1 },
@@ -258,7 +272,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "A",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -267,7 +281,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "B",
                         preconditions: new() { { "w", 1 } },
                         postconditions: new() { { "z", 1 } },
@@ -279,6 +293,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Contains("A", executedActions);
             Assert.Contains("B", executedActions);
@@ -296,9 +311,11 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void StateMutatorInvalidatesAllPossible() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 },
                     { "y", 0 },
@@ -312,7 +329,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Mutator",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -324,7 +341,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Finisher",
                         preconditions: new() { { "y", 99 } },
                         postconditions: new() { { "goal", true } },
@@ -336,6 +353,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "Mutator", "Finisher" }, executedActions);
             Assert.True((bool)agent.State["goal"]!);
@@ -350,9 +368,11 @@ namespace MountainGoapTest {
         /// </summary>
         [Fact]
         public void MultiStepPlanPreservesPossibleAcrossDepth() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var executedActions = new List<string>();
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "x", 1 }
                 },
@@ -364,7 +384,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Step1",
                         preconditions: new() { { "x", 1 } },
                         postconditions: new() { { "x", 2 } },
@@ -373,7 +393,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Step2",
                         preconditions: new() { { "x", 2 } },
                         postconditions: new() { { "x", 3 } },
@@ -382,7 +402,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Step3",
                         preconditions: new() { { "x", 3 } },
                         postconditions: new() { { "x", 4 } },
@@ -394,6 +414,7 @@ namespace MountainGoapTest {
                 },
                 neighborLookupMode: NeighborLookupMode.Aggressive
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(new List<string> { "Step1", "Step2", "Step3" }, executedActions);
             Assert.Equal(4, agent.State["x"]);

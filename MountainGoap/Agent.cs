@@ -17,42 +17,17 @@ namespace MountainGoap {
         public string Name { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Agent"/> class.
+        /// Initializes a new instance of the <see cref="Agent"/> class from a template.
         /// </summary>
-        /// <param name="name">Name of the agent.</param>
-        /// <param name="state">Initial agent state.</param>
-        /// <param name="memory">Initial agent memory.</param>
-        /// <param name="goals">Initial agent goals.</param>
-        /// <param name="actions">Actions available to the agent.</param>
-        /// <param name="sensors">Sensors available to the agent.</param>
-        /// <param name="costMaximum">Maximum cost of an allowable plan.</param>
-        /// <param name="stepMaximum">Maximum steps in an allowable plan.</param>
-        /// <param name="neighborLookupMode">Neighbor lookup strategy for planning.</param>
-        /// <param name="actionNodePool">Shared pool for planning node and action objects. Pass a shared instance to reduce allocations when multiple agents use the same action set.</param>
-        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Index, ActionNodePool? actionNodePool = null) {
-            Name = name ?? $"Agent {Guid.NewGuid()}";
-            if (state != null) State = state;
-            if (memory != null) Memory = memory;
-            CostMaximum = costMaximum;
-            StepMaximum = stepMaximum;
-            var stateSnapshot = new Dictionary<string, object?>();
-            if (state != null) foreach (var kvp in state) stateSnapshot[kvp.Key] = kvp.Value;
-            var actionCollection = actions ?? new ActionCollection();
-            Template = new AgentTemplate(Name, stateSnapshot, goals ?? new List<BaseGoal>(), actionCollection, sensors ?? new List<Sensor>(), costMaximum, stepMaximum, neighborLookupMode);
-            planner = new Planner(actionCollection, actionNodePool ?? new ActionNodePool(), neighborLookupMode);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Agent"/> class from a registered template.
-        /// Used by <see cref="AgentRegistry"/> — not for direct construction.
-        /// </summary>
-        internal Agent(AgentTemplate template) {
+        /// <param name="template">Template describing this agent type. Obtain via <see cref="AgentRegistry.RegisterAgent"/>.</param>
+        public Agent(IAgentTemplate template) {
+            if (template == null) throw new ArgumentNullException(nameof(template));
             Name = template.Name;
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
             CostMaximum = template.CostMaximum;
             StepMaximum = template.StepMaximum;
             Template = template;
-            planner = new Planner(template.ActionCollection, new ActionNodePool(), template.NeighborLookupMode);
+            planner = new Planner(template.Actions, new ActionNodePool(), template.NeighborLookupMode);
         }
 
         /// <summary>
@@ -99,9 +74,9 @@ namespace MountainGoap {
         private readonly List<ActionPlan> actionSequences = new();
 
         /// <summary>
-        /// Gets the template this agent was created from, or null for agents not vended by <see cref="AgentRegistry"/>.
+        /// Gets the template this agent was created from.
         /// </summary>
-        public AgentTemplate? Template { get; internal set; }
+        public IAgentTemplate Template { get; internal set; }
 
         /// <inheritdoc/>
         IReadOnlyState IReadOnlyAgent.State => State;
@@ -130,12 +105,12 @@ namespace MountainGoap {
         /// <summary>
         /// Gets the goals this agent pursues. Owned by the agent's template.
         /// </summary>
-        public IReadOnlyList<BaseGoal> Goals => Template!.Goals;
+        public IReadOnlyList<IReadOnlyGoal> Goals => Template!.Goals;
 
         /// <summary>
         /// Gets the actions available to the agent. Owned by the agent's template.
         /// </summary>
-        public IReadOnlyActionIndex Actions => Template!.ActionCollection;
+        public IReadOnlyActionIndex Actions => Template!.Actions;
 
         /// <summary>
         /// Gets the sensors this agent runs each step. Owned by the agent's template.

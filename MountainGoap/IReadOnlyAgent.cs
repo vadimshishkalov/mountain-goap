@@ -15,8 +15,8 @@ namespace MountainGoap {
         /// <summary>Gets a read-only view of the agent's current state.</summary>
         IReadOnlyState State { get; }
 
-        /// <summary>Gets the template this agent was created from, or null if not registry-vended.</summary>
-        AgentTemplate? Template { get; }
+        /// <summary>Gets the template this agent was created from.</summary>
+        IAgentTemplate Template { get; }
 
         /// <summary>Gets the goals this agent pursues.</summary>
         IReadOnlyList<IReadOnlyGoal> Goals { get; }

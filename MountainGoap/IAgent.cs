@@ -17,5 +17,20 @@ namespace MountainGoap {
 
         /// <summary>Gets the agent's memory storage.</summary>
         Dictionary<string, object?> Memory { get; }
+
+        /// <summary>Runs one step of agent work (sensors, then planning/execution).</summary>
+        void Step(StepMode mode = StepMode.Default);
+
+        /// <summary>Makes a plan synchronously.</summary>
+        void Plan();
+
+        /// <summary>Makes a plan asynchronously.</summary>
+        void PlanAsync();
+
+        /// <summary>Executes the current plan.</summary>
+        void ExecutePlan();
+
+        /// <summary>Clears the current action sequences.</summary>
+        void ClearPlan();
     }
 }

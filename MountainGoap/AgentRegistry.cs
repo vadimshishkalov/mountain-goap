@@ -27,8 +27,8 @@ namespace MountainGoap {
         /// <param name="costMaximum">Maximum plan cost forwarded to each instance.</param>
         /// <param name="stepMaximum">Maximum plan steps forwarded to each instance.</param>
         /// <param name="neighborLookupMode">Neighbor lookup strategy forwarded to each instance.</param>
-        /// <returns>The registered <see cref="AgentTemplate"/> descriptor.</returns>
-        public AgentTemplate RegisterAgent(
+        /// <returns>The registered <see cref="IAgentTemplate"/> descriptor.</returns>
+        public IAgentTemplate RegisterAgent(
             string name,
             State? state = null,
             List<BaseGoal>? goals = null,
@@ -65,8 +65,8 @@ namespace MountainGoap {
         /// available (reinitialising to the template's default state); otherwise creates a new agent.
         /// </summary>
         /// <param name="name">Name of a previously registered agent template.</param>
-        /// <returns>A ready-to-use <see cref="Agent"/>.</returns>
-        public Agent GetInstance(string name) {
+        /// <returns>A ready-to-use <see cref="IAgent"/>.</returns>
+        public IAgent GetInstance(string name) {
             if (!templates.TryGetValue(name, out var template))
                 throw new InvalidOperationException($"Agent template '{name}' is not registered. Call RegisterAgent first.");
             if (pools[name].TryPop(out var agent)) {
@@ -81,10 +81,11 @@ namespace MountainGoap {
         /// after returning it.
         /// </summary>
         /// <param name="agent">Agent to return. Must have been vended by this registry.</param>
-        public void ReturnInstance(Agent agent) {
-            if (agent.Template == null || !pools.TryGetValue(agent.Template.Name, out var pool))
-                throw new InvalidOperationException($"Agent '{agent.Name}' was not vended by this registry or its template is not registered.");
-            pool.Push(agent);
+        public void ReturnInstance(IAgent agent) {
+            var a = (Agent)agent;
+            if (!pools.TryGetValue(a.Template.Name, out var pool))
+                throw new InvalidOperationException($"Agent '{a.Name}' was not vended by this registry or its template is not registered.");
+            pool.Push(a);
         }
 
         private static Agent CreateFromTemplate(AgentTemplate template) {

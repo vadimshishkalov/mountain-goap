@@ -4,8 +4,10 @@ namespace MountainGoapTest {
     public class AgentTests {
         [Fact]
         public void ItHandlesInitialNullStateValuesCorrectly() {
-            var registry = new ActionRegistry();
-            var agent = new Agent(
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", null }
                 },
@@ -17,7 +19,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         preconditions: new() {
                             { "key", null }
                         },
@@ -30,14 +32,17 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.OneAction);
             Assert.NotNull(agent.State["key"]);
         }
 
         [Fact]
         public void ItHandlesNullGoalsCorrectly() {
-            var registry = new ActionRegistry();
-            var agent = new Agent(
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", "non-null value" }
                 },
@@ -49,7 +54,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         preconditions: new() {
                             { "key", "non-null value" }
                         },
@@ -62,14 +67,17 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.OneAction);
             Assert.Null(agent.State["key"]);
         }
 
         [Fact]
         public void ItHandlesNonNullStateValuesCorrectly() {
-            var registry = new ActionRegistry();
-            var agent = new Agent(
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", "value" }
                 },
@@ -81,7 +89,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -94,6 +102,7 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.OneAction);
             object? value = agent.State["key"];
             Assert.NotNull(value);
@@ -102,9 +111,11 @@ namespace MountainGoapTest {
 
         [Fact]
         public void ItExecutesOneActionInOneActionStepMode() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var actionCount = 0;
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", "value" }
                 },
@@ -116,7 +127,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         preconditions: new() {
                             { "key", "value" }
                         },
@@ -130,15 +141,18 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.OneAction);
             Assert.Equal(1, actionCount);
         }
 
         [Fact]
         public void ItExecutesAllActionsInAllActionsStepMode() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var actionCount = 0;
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", "value" }
                 },
@@ -150,7 +164,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Step 1",
                         preconditions: new() {
                             { "key", "value" }
@@ -163,7 +177,7 @@ namespace MountainGoapTest {
                             return ExecutionStatus.Succeeded;
                         }
                     ),
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "Step 2",
                         preconditions: new() {
                             { "key", "intermediate value" }
@@ -178,6 +192,7 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.AllActions);
             Assert.Equal(2, actionCount);
         }

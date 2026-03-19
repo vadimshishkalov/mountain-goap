@@ -4,10 +4,11 @@ namespace MountainGoapTest {
     public class PermutationSelectorTests {
         [Fact]
         public void ItSelectsFromADynamicallyGeneratedCollectionInState() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var collection = new List<int> { 1, 2, 3 };
             var selector = PermutationSelectorGenerators.SelectFromCollectionInState<int>("collection");
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
                 name: "sample agent",
                 state: new() {
                     { "collection", collection },
@@ -22,7 +23,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         name: "sample action",
                         cost: 1f,
                         preconditions: new() {
@@ -45,6 +46,7 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             IReadOnlyList<object> permutations = selector(agent.State);
             Assert.Equal(3, permutations.Count);
             agent.Step(StepMode.OneAction);

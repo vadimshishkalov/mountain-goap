@@ -18,7 +18,7 @@ namespace MountainGoap {
         private readonly Dictionary<ActionNode, float> costSoFar = new();
         private readonly Dictionary<ActionNode, int> stepsSoFar = new();
         private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new();
-        private BaseGoal? currentGoal;
+        private IReadOnlyGoal? currentGoal;
 
         /// <summary>
         /// Cost of the plan filled into the last <see cref="Search"/> call's <see cref="ActionPlan"/>.
@@ -32,7 +32,7 @@ namespace MountainGoap {
         /// and <see cref="FinalCost"/> holds the total plan cost. Node lifecycle is owned by
         /// <paramref name="graph"/>; action lifecycle is owned by <paramref name="plan"/>.
         /// </summary>
-        internal void Search(ActionNode start, BaseGoal goal, ActionGraph graph,
+        internal void Search(ActionNode start, IReadOnlyGoal goal, ActionGraph graph,
                              ActionPlan plan, IReadOnlyState baseState,
                              float costMaximum, int stepMaximum) {
             FinalCost = 0;
@@ -92,7 +92,7 @@ namespace MountainGoap {
             plan.Steps.Reverse();
         }
 
-        private static float Heuristic(ActionNode actionNode, BaseGoal goal, ActionNode current) {
+        private static float Heuristic(ActionNode actionNode, IReadOnlyGoal goal, ActionNode current) {
             var cost = 0f;
             if (goal is Goal normalGoal) {
                 foreach (var kvp in normalGoal.DesiredState) {

@@ -82,7 +82,7 @@ namespace MountainGoap {
         /// <param name="actionNode">Action node being tested.</param>
         /// <param name="current">Prior node in the action chain.</param>
         /// <returns>True if the goal is met, otherwise false.</returns>
-        internal static bool MeetsGoal(BaseGoal goal, ActionNode actionNode, ActionNode current) {
+        internal static bool MeetsGoal(IReadOnlyGoal goal, ActionNode actionNode, ActionNode current) {
             if (goal is Goal normalGoal) {
 #pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
                 foreach (var kvp in normalGoal.DesiredState) {

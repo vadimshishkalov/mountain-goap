@@ -41,7 +41,7 @@ namespace MountainGoap {
             Agent.TriggerOnPlanningStarted(agent);
             float bestPlanUtility = 0;
             ActionPlan? bestPlan = null;
-            BaseGoal? bestGoal = null;
+            IReadOnlyGoal? bestGoal = null;
             var baseState = agent.State.Snapshot();
             var graph = graphPool.Rent(actions, nodePool, neighborLookupMode);
 
