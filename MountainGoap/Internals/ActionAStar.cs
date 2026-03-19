@@ -104,7 +104,7 @@ namespace MountainGoap {
             else if (goal is ExtremeGoal extremeGoal) {
                 foreach (var kvp in extremeGoal.DesiredState) {
                     var valueDiff = 0f;
-                    var valueDiffMultiplier = (actionNode?.Action?.StateCostDeltaMultiplier ?? Action.DefaultStateCostDeltaMultiplier).Invoke(actionNode?.Action, kvp.Key);
+                    var valueDiffMultiplier = (actionNode.Action?.StateCostDeltaMultiplier ?? Action.DefaultStateCostDeltaMultiplier).Invoke(actionNode.Action, kvp.Key);
                     if (actionNode.State.ContainsKey(kvp.Key) && actionNode.State[kvp.Key] == null) {
                         cost += float.PositiveInfinity;
                         continue;
@@ -119,7 +119,7 @@ namespace MountainGoap {
             else if (goal is ComparativeGoal comparativeGoal) {
                 foreach (var kvp in comparativeGoal.DesiredState) {
                     var valueDiff2 = 0f;
-                    var valueDiffMultiplier = (actionNode?.Action?.StateCostDeltaMultiplier ?? Action.DefaultStateCostDeltaMultiplier).Invoke(actionNode?.Action, kvp.Key);
+                    var valueDiffMultiplier = (actionNode.Action?.StateCostDeltaMultiplier ?? Action.DefaultStateCostDeltaMultiplier).Invoke(actionNode.Action, kvp.Key);
                     if (actionNode.State.ContainsKey(kvp.Key) && comparativeGoal.DesiredState.ContainsKey(kvp.Key)) valueDiff2 = Math.Abs(Convert.ToSingle(actionNode.State[kvp.Key]) - Convert.ToSingle(current.State[kvp.Key]));
                     if (!actionNode.State.ContainsKey(kvp.Key)) cost += float.PositiveInfinity;
                     else if (!current.State.ContainsKey(kvp.Key)) cost += float.PositiveInfinity;

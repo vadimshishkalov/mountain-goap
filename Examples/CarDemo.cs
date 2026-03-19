@@ -41,8 +41,7 @@ namespace Examples {
                         postconditions: new() {
                             { "distanceTraveled", 50 }
                         },
-                        executor: TravelExecutor
-                    ),
+                        executor: TravelExecutor),
                     registry.RegisterAction(
                         name: "Drive",
                         cost: 5,
@@ -52,8 +51,7 @@ namespace Examples {
                         postconditions: new() {
                             { "distanceTraveled", 50 }
                         },
-                        executor: TravelExecutor
-                    ),
+                        executor: TravelExecutor),
                     registry.RegisterAction(
                         name: "Get in Car",
                         cost: 1,
@@ -63,8 +61,7 @@ namespace Examples {
                         postconditions: new() {
                             { "inCar", true }
                         },
-                        executor: GetInCarExecutor
-                    )
+                        executor: GetInCarExecutor)
                 });
             IAgent agent = registry.GetInstance("Driving Agent");
             while (agent.State["distanceTraveled"] is int distance && distance < 50) agent.Step();

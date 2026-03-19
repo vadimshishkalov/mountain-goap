@@ -58,8 +58,7 @@ namespace Examples {
                         },
                         parameterPostconditions: new() {
                             { "location", "location" }
-                        }
-                    ),
+                        }),
                     registry.RegisterAction(
                         name: "Drive",
                         cost: 1f,
@@ -82,8 +81,7 @@ namespace Examples {
                         },
                         postconditions: new() {
                             { "justTraveled", true }
-                        }
-                    ),
+                        }),
                     registry.RegisterAction(
                         name: "Get in car",
                         cost: 1f,
@@ -100,8 +98,7 @@ namespace Examples {
                         arithmeticPostconditions: new() {
                             { "energy", -1 }
                         },
-                        executor: GenericExecutor
-                    ),
+                        executor: GenericExecutor),
                     registry.RegisterAction(
                         name: "Get out of car",
                         cost: 1f,
@@ -117,8 +114,7 @@ namespace Examples {
                         arithmeticPostconditions: new() {
                             { "energy", -1 }
                         },
-                        executor: GenericExecutor
-                    ),
+                        executor: GenericExecutor),
                     registry.RegisterAction(
                         name: "Work",
                         cost: 1f,
@@ -136,8 +132,7 @@ namespace Examples {
                         postconditions: new() {
                             { "justTraveled", false }
                         },
-                        executor: GenericExecutor
-                    ),
+                        executor: GenericExecutor),
                     registry.RegisterAction(
                         name: "Shop",
                         cost: 1f,
@@ -157,8 +152,7 @@ namespace Examples {
                         postconditions: new() {
                             { "justTraveled", false }
                         },
-                        executor: GenericExecutor
-                    )
+                        executor: GenericExecutor)
                 });
             IAgent agent = registry.GetInstance("Consumer Agent");
             while (agent.State["food"] is int food && food < 5) agent.Step();

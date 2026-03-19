@@ -41,8 +41,7 @@ namespace Examples {
                     { "target", RpgUtils.EnemyPermutations },
                     { "startingPosition", RpgUtils.StartingPositionPermutations }
                 },
-                costCallback: RpgUtils.GoToEnemyCost
-            );
+                costCallback: RpgUtils.GoToEnemyCost);
             var killNearbyEnemy = registry.RegisterAction(
                 name: "Kill Nearby Enemy",
                 executor: KillNearbyEnemyExecutor,
@@ -52,8 +51,7 @@ namespace Examples {
                 postconditions: new() {
                    { "canSeeEnemies", false },
                    { "nearEnemy", false }
-                }
-            );
+                });
 
             ActionCollection actions = new() { goToEnemy, killNearbyEnemy };
             var template = registry.RegisterAgent(
@@ -73,8 +71,7 @@ namespace Examples {
                     seeEnemiesSensor,
                     enemyProximitySensor
                 },
-                actions: actions
-            );
+                actions: actions);
             return new Agent(template);
         }
 

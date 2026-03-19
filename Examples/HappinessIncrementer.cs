@@ -41,10 +41,8 @@ namespace Examples {
                         },
                         postconditions: new() {
                             { "happinessRecentlyIncreased", true }
-                        }
-                    )
-                }
-            );
+                        })
+                });
             IAgent agent = registry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness != 10) agent.Step();
         }

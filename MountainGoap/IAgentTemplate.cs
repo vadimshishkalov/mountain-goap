@@ -7,7 +7,7 @@ namespace MountainGoap {
 
     /// <summary>
     /// Read-only view of an agent type descriptor. Obtain instances via
-    /// <see cref="AgentRegistry.RegisterAgent"/>.
+    /// <see cref="Registry.RegisterAgent"/>.
     /// </summary>
     public interface IAgentTemplate {
         /// <summary>Gets the name used to identify this agent type in the registry.</summary>

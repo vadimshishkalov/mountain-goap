@@ -38,8 +38,7 @@ namespace Examples {
                         },
                         arithmeticPostconditions: new() {
                             { "happiness", 1 }
-                        }
-                    ),
+                        }),
                     registry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
@@ -48,17 +47,14 @@ namespace Examples {
                         },
                         arithmeticPostconditions: new() {
                             { "happiness", 2 }
-                        }
-                    ),
+                        }),
                     registry.RegisterAction(
                         name: "Seek Health",
                         executor: SeekHealth,
                         postconditions: new() {
                             { "health", true }
-                        }
-                    ),
-                }
-            );
+                        }),
+                });
             IAgent agent = registry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness != 10) {
                 agent.Step();

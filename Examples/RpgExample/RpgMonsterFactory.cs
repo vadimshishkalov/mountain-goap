@@ -55,8 +55,7 @@ namespace Examples {
                         { "target", RpgUtils.EnemyPermutations },
                         { "startingPosition", RpgUtils.StartingPositionPermutations }
                     },
-                    costCallback: RpgUtils.GoToEnemyCost
-                ),
+                    costCallback: RpgUtils.GoToEnemyCost),
                 registry.RegisterAction(
                     name: "Kill Nearby Enemy",
                     executor: KillNearbyEnemyExecutor,
@@ -66,8 +65,7 @@ namespace Examples {
                     postconditions: new() {
                         { "canSeeEnemies", false },
                         { "nearEnemy", false }
-                    }
-                ),
+                    }),
                 registry.RegisterAction(
                     name: "Look For Food",
                     executor: LookForFoodExecutor,
@@ -77,8 +75,7 @@ namespace Examples {
                     },
                     postconditions: new() {
                         { "canSeeFood", true }
-                    }
-                ),
+                    }),
                 registry.RegisterAction(
                     name: "Go To Food",
                     executor: GoToFoodExecutor,
@@ -93,8 +90,7 @@ namespace Examples {
                         { "target", RpgUtils.FoodPermutations },
                         { "startingPosition", RpgUtils.StartingPositionPermutations }
                     },
-                    costCallback: RpgUtils.GoToFoodCost
-                ),
+                    costCallback: RpgUtils.GoToFoodCost),
                 registry.RegisterAction(
                     name: "Eat",
                     executor: EatExecutor,
@@ -104,8 +100,7 @@ namespace Examples {
                     },
                     postconditions: new() {
                         { "eatingFood", true }
-                    }
-                ),
+                    }),
             };
             var template = registry.RegisterAgent(
                 name: $"Monster {counter++}",
@@ -131,8 +126,7 @@ namespace Examples {
                     seeFoodSensor,
                     foodProximitySensor
                 },
-                actions: actions
-            );
+                actions: actions);
             return new Agent(template);
         }
 

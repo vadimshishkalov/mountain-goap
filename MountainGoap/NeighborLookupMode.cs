@@ -4,7 +4,7 @@
 
 namespace MountainGoap {
     /// <summary>
-    /// Controls how <see cref="Internals.ActionGraph"/> discovers neighbor nodes during A* planning.
+    /// Controls how <see cref="ActionGraph"/> discovers neighbor nodes during A* planning.
     /// </summary>
     public enum NeighborLookupMode {
         /// <summary>Full iteration every hop — no caching, no index lookups.</summary>
