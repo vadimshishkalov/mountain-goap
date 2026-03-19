@@ -5,7 +5,6 @@
 namespace MountainGoap {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
 
     /// <summary>
     /// GOAP agent.
@@ -73,6 +72,8 @@ namespace MountainGoap {
 
         private readonly Planner planner;
         private readonly List<ActionPlan> actionSequences = new();
+        private volatile bool _isBusy;
+        private volatile bool _isPlanning;
 
         /// <summary>
         /// Gets the template this agent was created from.
@@ -127,12 +128,18 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently executing one or more actions.
         /// </summary>
-        public bool IsBusy { get; internal set; } = false;
+        public bool IsBusy {
+            get => _isBusy;
+            internal set => _isBusy = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently planning.
         /// </summary>
-        public bool IsPlanning { get; internal set; } = false;
+        public bool IsPlanning {
+            get => _isPlanning;
+            internal set => _isPlanning = value;
+        }
 
         /// <summary>
         /// You should call this every time your game state updates.
@@ -192,12 +199,17 @@ namespace MountainGoap {
         /// Makes a plan asynchronously.
         /// </summary>
         public void PlanAsync() {
-            if (!IsBusy && !IsPlanning) {
-                IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { planner.Plan(this); }));
-                t.Start();
+            if (!_isBusy && !_isPlanning) {
+                _isPlanning = true;
+                if (!PlannerWorkerPool.Default.Enqueue(this))
+                    _isPlanning = false;
             }
         }
+
+        /// <summary>
+        /// Runs the planner synchronously on this agent. Called by <see cref="PlannerWorkerPool"/> workers.
+        /// </summary>
+        internal void RunPlan() => planner.Plan(this);
 
         /// <summary>
         /// Executes the current plan.
@@ -265,12 +277,12 @@ namespace MountainGoap {
         /// Executes an asynchronous step of agent work.
         /// </summary>
         private void StepAsync() {
-            if (!IsBusy && !IsPlanning) {
-                IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { planner.Plan(this); }));
-                t.Start();
+            if (!_isBusy && !_isPlanning) {
+                _isPlanning = true;
+                if (!PlannerWorkerPool.Default.Enqueue(this))
+                    _isPlanning = false;
             }
-            else if (!IsPlanning) Execute();
+            else if (!_isPlanning) Execute();
         }
 
         /// <summary>
