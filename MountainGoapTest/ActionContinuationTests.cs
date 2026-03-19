@@ -5,10 +5,9 @@ namespace MountainGoapTest {
     public class ActionContinuationTests {
         [Fact]
         public void ItCanContinueActions() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
+            var registry = new Registry();
             var timesExecuted = 0;
-            var template = agentRegistry.RegisterAgent(
+            var template = registry.RegisterAgent(
                 name: "test",
                 state: new() {
                     { "key", false },
@@ -22,7 +21,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         preconditions: new() {
                             { "key", false }
                         },

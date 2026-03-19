@@ -15,9 +15,8 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            registry.RegisterAgent(
                 name: "Driving Agent",
                 state: new() {
                     { "distanceTraveled", 0 },
@@ -36,7 +35,7 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Walk",
                         cost: 50,
                         postconditions: new() {
@@ -44,7 +43,7 @@ namespace Examples {
                         },
                         executor: TravelExecutor
                     ),
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Drive",
                         cost: 5,
                         preconditions: new() {
@@ -55,7 +54,7 @@ namespace Examples {
                         },
                         executor: TravelExecutor
                     ),
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Get in Car",
                         cost: 1,
                         preconditions: new() {
@@ -67,7 +66,7 @@ namespace Examples {
                         executor: GetInCarExecutor
                     )
                 });
-            Agent agent = agentRegistry.GetInstance("Driving Agent");
+            IAgent agent = registry.GetInstance("Driving Agent");
             while (agent.State["distanceTraveled"] is int distance && distance < 50) agent.Step();
         }
 

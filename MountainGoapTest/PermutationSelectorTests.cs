@@ -4,11 +4,10 @@ namespace MountainGoapTest {
     public class PermutationSelectorTests {
         [Fact]
         public void ItSelectsFromADynamicallyGeneratedCollectionInState() {
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
+            var registry = new Registry();
             var collection = new List<int> { 1, 2, 3 };
             var selector = PermutationSelectorGenerators.SelectFromCollectionInState<int>("collection");
-            var template = agentRegistry.RegisterAgent(
+            var template = registry.RegisterAgent(
                 name: "sample agent",
                 state: new() {
                     { "collection", collection },
@@ -23,7 +22,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "sample action",
                         cost: 1f,
                         preconditions: new() {

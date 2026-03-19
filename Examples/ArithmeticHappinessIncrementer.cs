@@ -15,9 +15,8 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            registry.RegisterAgent(
                 name: "Happiness Agent",
                 state: new() {
                     { "happiness", 0 },
@@ -30,14 +29,14 @@ namespace Examples {
                         })
                 },
                 actions: new() {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         arithmeticPostconditions: new() {
                             { "happiness", 1 }
                         }
                     ),
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Seek Greater Happiness",
                         executor: SeekGreaterHappinessAction,
                         arithmeticPostconditions: new() {
@@ -46,7 +45,7 @@ namespace Examples {
                     )
                 }
             );
-            Agent agent = agentRegistry.GetInstance("Happiness Agent");
+            IAgent agent = registry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness != 10) {
                 agent.Step();
                 Console.WriteLine($"NEW HAPPINESS IS {agent.State["happiness"]}");

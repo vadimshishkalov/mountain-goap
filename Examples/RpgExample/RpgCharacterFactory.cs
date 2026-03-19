@@ -17,7 +17,7 @@ namespace Examples {
         /// <param name="name">Name of the character.</param>
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, string name = "Player") {
-            var registry = new ActionRegistry();
+            var registry = new Registry();
             Goal removeEnemies = new(
                 name: "Remove Enemies",
                 weight: 1f,
@@ -55,10 +55,8 @@ namespace Examples {
                 }
             );
 
-            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
-            // Blocker: name is a per-call parameter — requires either fixing the template name
-            // or adding per-instance name support to AgentRegistry.
-            Agent agent = new(
+            ActionCollection actions = new() { goToEnemy, killNearbyEnemy };
+            var template = registry.RegisterAgent(
                 name: name,
                 state: new() {
                     { "canSeeEnemies", false },
@@ -75,27 +73,24 @@ namespace Examples {
                     seeEnemiesSensor,
                     enemyProximitySensor
                 },
-                actions: new() {
-                    goToEnemy,
-                    killNearbyEnemy
-                }
+                actions: actions
             );
-            return agent;
+            return new Agent(template);
         }
 
         private static void SeeEnemiesSensorHandler(IAgent agent) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 5f);
-                if (agent2 != null) agent.State["canSeeEnemies"] = true;
-                else agent.State["canSeeEnemies"] = false;
+                if (agent2 != null) agent.State.Set("canSeeEnemies", true);
+                else agent.State.Set("canSeeEnemies", false);
             }
         }
 
         private static void EnemyProximitySensorHandler(IAgent agent) {
             if (agent.State["agents"] is List<Agent> agents) {
                 var agent2 = RpgUtils.GetEnemyInRange(agent, agents, 1f);
-                if (agent2 != null) agent.State["nearEnemy"] = true;
-                else agent.State["nearEnemy"] = false;
+                if (agent2 != null) agent.State.Set("nearEnemy", true);
+                else agent.State.Set("nearEnemy", false);
             }
         }
 
@@ -115,7 +110,7 @@ namespace Examples {
             if (action.GetParameter("target") is not Agent target) return ExecutionStatus.Failed;
             if (agent.State["position"] is Vector2 pos1 && target.State["position"] is Vector2 pos2) {
                 var newPos = RpgUtils.MoveTowardsOtherPosition(pos1, pos2);
-                agent.State["position"] = newPos;
+                agent.State.Set("position", newPos);
                 if (RpgUtils.InDistance(newPos, pos2, 1f)) return ExecutionStatus.Succeeded;
             }
             return ExecutionStatus.Failed;

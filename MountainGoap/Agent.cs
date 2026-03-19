@@ -19,15 +19,16 @@ namespace MountainGoap {
         /// <summary>
         /// Initializes a new instance of the <see cref="Agent"/> class from a template.
         /// </summary>
-        /// <param name="template">Template describing this agent type. Obtain via <see cref="AgentRegistry.RegisterAgent"/>.</param>
-        public Agent(IAgentTemplate template) {
+        /// <param name="template">Template describing this agent type. Obtain via <see cref="Registry.RegisterAgent"/>.</param>
+        /// <param name="poolManager">Shared pool manager. Pass <c>null</c> to let the agent create its own pools.</param>
+        public Agent(IAgentTemplate template, PoolManager? poolManager = null) {
             if (template == null) throw new ArgumentNullException(nameof(template));
             Name = template.Name;
+            State = new State(poolManager?.StatePool);
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
-            CostMaximum = template.CostMaximum;
-            StepMaximum = template.StepMaximum;
+            Configuration = template.Configuration;
             Template = template;
-            planner = new Planner(template.Actions, new ActionNodePool(), template.NeighborLookupMode);
+            planner = new Planner(template.Actions, poolManager);
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets the current world state from the agent perspective.
         /// </summary>
-        public State State { get; set; } = new();
+        public State State { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the memory storage object for the agent.
@@ -118,14 +119,10 @@ namespace MountainGoap {
         public IReadOnlyList<Sensor> Sensors => Template!.Sensors;
 
         /// <summary>
-        /// Gets or sets the plan cost maximum for the agent.
+        /// Gets or sets the behavioural configuration for this agent instance.
+        /// Initialised from the template; can be overridden per-instance at runtime.
         /// </summary>
-        public float CostMaximum { get; set; }
-
-        /// <summary>
-        /// Gets or sets the step maximum for the agent.
-        /// </summary>
-        public int StepMaximum { get; set; }
+        public AgentConfiguration Configuration { get; set; } = new();
 
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently executing one or more actions.
@@ -148,7 +145,7 @@ namespace MountainGoap {
                 StepAsync();
                 return;
             }
-            if (!IsBusy) planner.Plan(this, CostMaximum, StepMaximum);
+            if (!IsBusy) planner.Plan(this);
             if (mode == StepMode.OneAction) Execute();
             else if (mode == StepMode.AllActions) while (IsBusy) Execute();
         }
@@ -167,6 +164,7 @@ namespace MountainGoap {
         /// </summary>
         internal void Reinitialize(AgentTemplate template) {
             Template = template;
+            Configuration = template.Configuration;
             State.Clear();
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
             Memory = new Dictionary<string, object?>();
@@ -186,7 +184,7 @@ namespace MountainGoap {
         public void Plan() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                planner.Plan(this, CostMaximum, StepMaximum);
+                planner.Plan(this);
             }
         }
 
@@ -196,7 +194,7 @@ namespace MountainGoap {
         public void PlanAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this); }));
                 t.Start();
             }
         }
@@ -269,7 +267,7 @@ namespace MountainGoap {
         private void StepAsync() {
             if (!IsBusy && !IsPlanning) {
                 IsPlanning = true;
-                var t = new Thread(new ThreadStart(() => { planner.Plan(this, CostMaximum, StepMaximum); }));
+                var t = new Thread(new ThreadStart(() => { planner.Plan(this); }));
                 t.Start();
             }
             else if (!IsPlanning) Execute();
