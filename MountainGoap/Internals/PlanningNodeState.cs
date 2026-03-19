@@ -39,6 +39,7 @@ namespace MountainGoap {
         public bool ContainsKey(string key) => delta.ContainsKey(key) || baseState.ContainsKey(key);
 
         /// <inheritdoc/>
+        // NOTE: yield allocates a state machine but this is only an IReadOnlyState contract impl — not called in hot path.
         public IEnumerable<string> Keys {
             get {
                 foreach (var key in delta.Keys) yield return key;

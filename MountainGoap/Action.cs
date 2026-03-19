@@ -151,12 +151,12 @@ namespace MountainGoap {
         /// <summary>
         /// Event that triggers when an action begins executing.
         /// </summary>
-        public static event BeginExecuteActionEvent OnBeginExecuteAction = (agent, action) => { };
+        public static event BeginExecuteActionEvent? OnBeginExecuteAction;
 
         /// <summary>
         /// Event that triggers when an action finishes executing.
         /// </summary>
-        public static event FinishExecuteActionEvent OnFinishExecuteAction = (agent, action, status) => { };
+        public static event FinishExecuteActionEvent? OnFinishExecuteAction;
 
         /// <summary>
         /// Gets the distinct state keys referenced by static preconditions. Used by
@@ -195,16 +195,16 @@ namespace MountainGoap {
         /// Executes the action for the given agent and runtime action instance.
         /// </summary>
         internal ExecutionStatus Execute(Agent agent, ExecutingAction action) {
-            OnBeginExecuteAction(agent, action);
+            OnBeginExecuteAction?.Invoke(agent, action);
             if (IsPossible(action, agent.State)) {
                 var newState = executor(agent, action);
                 if (newState == ExecutionStatus.Succeeded) ApplyEffects(action, agent.State);
                 action.ExecutionStatus = newState;
-                OnFinishExecuteAction(agent, action, action.ExecutionStatus);
+                OnFinishExecuteAction?.Invoke(agent, action, action.ExecutionStatus);
                 return newState;
             }
             else {
-                OnFinishExecuteAction(agent, action, ExecutionStatus.NotPossible);
+                OnFinishExecuteAction?.Invoke(agent, action, ExecutionStatus.NotPossible);
                 return ExecutionStatus.NotPossible;
             }
         }

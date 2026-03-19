@@ -44,6 +44,7 @@ namespace MountainGoap {
         public bool ContainsKey(string key) => data.ContainsKey(key);
 
         /// <inheritdoc/>
+        // NOTE: ConcurrentDictionary.Keys allocates a snapshot but this is only an IReadOnlyState contract impl — not called in hot path.
         public IEnumerable<string> Keys => data.Keys;
 
         /// <inheritdoc/>

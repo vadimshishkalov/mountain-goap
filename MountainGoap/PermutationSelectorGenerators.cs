@@ -17,10 +17,12 @@ namespace MountainGoap {
         /// <param name="values">Set of values to be included in permutations.</param>
         /// <returns>A lambda function that returns all elements from the collection passed in.</returns>
         public static PermutationSelectorCallback SelectFromCollection<T>(IEnumerable<T> values) {
+            List<object>? cached = null;
             return (IReadOnlyState state) => {
-                List<object> output = new();
-                foreach (var item in values) if (item is not null) output.Add(item);
-                return output;
+                if (cached != null) return cached;
+                cached = new List<object>();
+                foreach (var item in values) if (item is not null) cached.Add(item);
+                return cached;
             };
         }
 
@@ -31,8 +33,9 @@ namespace MountainGoap {
         /// <param name="key">Key of the state to check for the collection.</param>
         /// <returns>A lambda function that returns all elements from the collection in the state.</returns>
         public static PermutationSelectorCallback SelectFromCollectionInState<T>(string key) {
+            List<object> output = new();
             return (IReadOnlyState state) => {
-                List<object> output = new();
+                output.Clear();
                 if (state[key] is not IEnumerable<T> values) return output;
                 foreach (var item in values) if (item is not null) output.Add(item);
                 return output;
@@ -46,10 +49,12 @@ namespace MountainGoap {
         /// <param name="upperBound">Upper bound, non-inclusive.</param>
         /// <returns>A lambda function that returns all elements in the range given.</returns>
         public static PermutationSelectorCallback SelectFromIntegerRange(int lowerBound, int upperBound) {
+            List<object>? cached = null;
             return (IReadOnlyState state) => {
-                List<object> output = new();
-                for (int i = lowerBound; i < upperBound; i++) output.Add(i);
-                return output;
+                if (cached != null) return cached;
+                cached = new List<object>();
+                for (int i = lowerBound; i < upperBound; i++) cached.Add(i);
+                return cached;
             };
         }
     }
