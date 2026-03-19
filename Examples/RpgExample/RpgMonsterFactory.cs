@@ -20,8 +20,8 @@ namespace Examples {
         /// <param name="foodPositions">List of positions for food in the world state.</param>
         /// <returns>An RPG character agent.</returns>
         internal static Agent Create(List<Agent> agents, List<Vector2> foodPositions) {
-            var registry = new ActionRegistry();
-            // TODO: Migrate to AgentRegistry.RegisterAgent / GetInstance.
+            var registry = new Registry();
+            // TODO: Migrate to Registry.RegisterAgent / GetInstance.
             // The mutations below (State setup + Goals/Sensors/Actions.Add) must move into
             // RegisterAgent before this factory can use instance pooling.
             var agent = RpgCharacterFactory.Create(agents, $"Monster {counter++}");

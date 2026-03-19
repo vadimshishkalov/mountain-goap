@@ -15,9 +15,8 @@ namespace Examples {
         /// </summary>
         internal static void Run() {
             _ = new DefaultLogger();
-            var actionRegistry = new ActionRegistry();
-            var agentRegistry = new AgentRegistry();
-            agentRegistry.RegisterAgent(
+            var registry = new Registry();
+            registry.RegisterAgent(
                 name: "Happiness Agent",
                 state: new() {
                     { "happiness", 0 },
@@ -34,7 +33,7 @@ namespace Examples {
                     new(EnnuiSensorHandler, "Ennui Sensor")
                 },
                 actions: new() {
-                    actionRegistry.RegisterAction(
+                    registry.RegisterAction(
                         name: "Seek Happiness",
                         executor: SeekHappinessAction,
                         preconditions: new() {
@@ -46,7 +45,7 @@ namespace Examples {
                     )
                 }
             );
-            Agent agent = agentRegistry.GetInstance("Happiness Agent");
+            IAgent agent = registry.GetInstance("Happiness Agent");
             while (agent.State["happiness"] is int happiness && happiness != 10) agent.Step();
         }
 
@@ -54,7 +53,7 @@ namespace Examples {
             int? happiness = agent.State["happiness"] as int?;
             if (happiness != null) {
                 happiness++;
-                agent.State["happiness"] = happiness;
+                agent.State.Set("happiness", happiness);
                 Console.WriteLine("Seeking happiness.");
                 Console.WriteLine($"NEW HAPPINESS IS {happiness}");
             }
@@ -62,7 +61,7 @@ namespace Examples {
         }
 
         private static void EnnuiSensorHandler(IAgent agent) {
-            agent.State["happinessRecentlyIncreased"] = false;
+            agent.State.Set("happinessRecentlyIncreased", false);
         }
     }
 }
