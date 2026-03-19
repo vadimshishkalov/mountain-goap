@@ -135,7 +135,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets multiplier for delta value to provide delta cost.
         /// </summary>
-        public StateCostDeltaMultiplierCallback? StateCostDeltaMultiplier { get; set; }
+        public StateCostDeltaMultiplierCallback? StateCostDeltaMultiplier { get; }
 
         /// <summary>
         /// Default multiplier callback returning 1 for all state keys.
@@ -226,7 +226,7 @@ namespace MountainGoap {
         /// </summary>
         // Per-thread scratch buffers for GetPermutations. Safe because permutation iteration
         // is never nested on the same thread (Neighbors fully consumes one action before the next).
-        [ThreadStatic] private static List<object>[]? _tsValues;
+        [ThreadStatic] private static IReadOnlyList<object>[]? _tsValues;
         [ThreadStatic] private static int[]? _tsIndices;
         [ThreadStatic] private static int[]? _tsCounts;
         [ThreadStatic] private static object?[]? _tsCurrentValues;
@@ -239,7 +239,7 @@ namespace MountainGoap {
             }
 
             if (_tsValues == null || _tsValues.Length < n) {
-                _tsValues = new List<object>[n];
+                _tsValues = new IReadOnlyList<object>[n];
                 _tsIndices = new int[n];
                 _tsCounts = new int[n];
                 _tsCurrentValues = new object?[n];

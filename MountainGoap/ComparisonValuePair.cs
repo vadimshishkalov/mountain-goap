@@ -10,11 +10,11 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets the value to be compared against.
         /// </summary>
-        public object? Value { get; set; } = null;
+        public object? Value { get; init; } = null;
 
         /// <summary>
-        /// Gets or sets the operator to be used for comparison.
+        /// Gets or initializes the operator to be used for comparison.
         /// </summary>
-        public ComparisonOperator Operator { get; set; } = ComparisonOperator.Undefined;
+        public ComparisonOperator Operator { get; init; } = ComparisonOperator.Undefined;
     }
 }

@@ -14,6 +14,6 @@ namespace MountainGoap {
         /// <summary>
         /// Ordered list of actions to be executed.
         /// </summary>
-        IReadOnlyList<ExecutingAction> Steps { get; }
+        IReadOnlyList<IReadOnlyAction> Steps { get; }
     }
 }

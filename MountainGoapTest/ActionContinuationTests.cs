@@ -5,9 +5,11 @@ namespace MountainGoapTest {
     public class ActionContinuationTests {
         [Fact]
         public void ItCanContinueActions() {
-            var registry = new ActionRegistry();
+            var actionRegistry = new ActionRegistry();
+            var agentRegistry = new AgentRegistry();
             var timesExecuted = 0;
-            var agent = new Agent(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 state: new() {
                     { "key", false },
                     { "progress", 0 }
@@ -20,7 +22,7 @@ namespace MountainGoapTest {
                     )
                 },
                 actions: new ActionCollection {
-                    registry.RegisterAction(
+                    actionRegistry.RegisterAction(
                         preconditions: new() {
                             { "key", false }
                         },
@@ -30,7 +32,7 @@ namespace MountainGoapTest {
                         executor: (IAgent agent, IAction action) => {
                             timesExecuted++;
                             if (agent.State["progress"] is int progress && progress < 3) {
-                                agent.State["progress"] = progress + 1;
+                                agent.State.Set("progress", progress + 1);
                                 return ExecutionStatus.Executing;
                             }
                             else return ExecutionStatus.Succeeded;
@@ -38,6 +40,7 @@ namespace MountainGoapTest {
                     )
                 }
             );
+            var agent = new Agent(template);
             agent.Step(StepMode.OneAction);
             if (agent.State["key"] is bool value) Assert.False(value);
             else Assert.False(true);

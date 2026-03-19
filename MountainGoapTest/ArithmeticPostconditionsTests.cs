@@ -7,7 +7,8 @@ namespace MountainGoapTest
         [Fact]
         public void MinimalExampleTest()
         {
-            var registry = new MountainGoap.ActionRegistry();
+            var actionRegistry = new MountainGoap.ActionRegistry();
+            var agentRegistry = new MountainGoap.AgentRegistry();
 
             List<BaseGoal> goals = new() {
                 new ComparativeGoal(
@@ -23,7 +24,7 @@ namespace MountainGoapTest
             };
 
             ActionCollection actions = new() {
-                registry.RegisterAction(
+                actionRegistry.RegisterAction(
                     name: "Action1",
                     executor: (MountainGoap.IAgent agent, MountainGoap.IAction action) => {
                         return ExecutionStatus.Succeeded;
@@ -35,13 +36,16 @@ namespace MountainGoapTest
                 ),
             };
 
-            Agent agent = new(
+            var template = agentRegistry.RegisterAgent(
+                name: "test",
                 goals: goals,
                 actions: actions,
                 state: new() {
                     { "i", 0 }
                 }
             );
+
+            Agent agent = new(template);
 
             agent.Step(StepMode.OneAction);
             Assert.Equal(10, agent.State["i"]);

@@ -16,7 +16,7 @@ namespace MountainGoap {
         private readonly IActionGraphPool graphPool = new ActionGraphPool();
         private readonly IActionPlanPool planPool = new ActionPlanPool();
         private readonly IActionNodePool nodePool;
-        private readonly ActionCollection actions;
+        private readonly IReadOnlyActionIndex actions;
         private readonly NeighborLookupMode neighborLookupMode;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace MountainGoap {
         /// <param name="actions">Indexed action collection for the owning agent.</param>
         /// <param name="nodePool">Pool for ActionNode and ExecutingAction objects.</param>
         /// <param name="neighborLookupMode">Neighbor lookup strategy for planning.</param>
-        internal Planner(ActionCollection actions, IActionNodePool nodePool, NeighborLookupMode neighborLookupMode) {
+        internal Planner(IReadOnlyActionIndex actions, IActionNodePool nodePool, NeighborLookupMode neighborLookupMode) {
             this.actions = actions;
             this.nodePool = nodePool;
             this.neighborLookupMode = neighborLookupMode;
@@ -41,7 +41,7 @@ namespace MountainGoap {
             Agent.TriggerOnPlanningStarted(agent);
             float bestPlanUtility = 0;
             ActionPlan? bestPlan = null;
-            BaseGoal? bestGoal = null;
+            IReadOnlyGoal? bestGoal = null;
             var baseState = agent.State.Snapshot();
             var graph = graphPool.Rent(actions, nodePool, neighborLookupMode);
 

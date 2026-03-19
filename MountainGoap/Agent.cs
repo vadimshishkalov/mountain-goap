@@ -17,27 +17,17 @@ namespace MountainGoap {
         public string Name { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Agent"/> class.
+        /// Initializes a new instance of the <see cref="Agent"/> class from a template.
         /// </summary>
-        /// <param name="name">Name of the agent.</param>
-        /// <param name="state">Initial agent state.</param>
-        /// <param name="memory">Initial agent memory.</param>
-        /// <param name="goals">Initial agent goals.</param>
-        /// <param name="actions">Actions available to the agent.</param>
-        /// <param name="sensors">Sensors available to the agent.</param>
-        /// <param name="costMaximum">Maximum cost of an allowable plan.</param>
-        /// <param name="stepMaximum">Maximum steps in an allowable plan.</param>
-        /// <param name="neighborLookupMode">Neighbor lookup strategy for planning.</param>
-        public Agent(string? name = null, State? state = null, Dictionary<string, object?>? memory = null, List<BaseGoal>? goals = null, ActionCollection? actions = null, List<Sensor>? sensors = null, float costMaximum = float.MaxValue, int stepMaximum = int.MaxValue, NeighborLookupMode neighborLookupMode = NeighborLookupMode.Index) {
-            Name = name ?? $"Agent {Guid.NewGuid()}";
-            if (state != null) State = state;
-            if (memory != null) Memory = memory;
-            if (goals != null) Goals = goals;
-            if (actions != null) Actions = actions;
-            if (sensors != null) Sensors = sensors;
-            CostMaximum = costMaximum;
-            StepMaximum = stepMaximum;
-            planner = new Planner(Actions, new ActionNodePool(), neighborLookupMode);
+        /// <param name="template">Template describing this agent type. Obtain via <see cref="AgentRegistry.RegisterAgent"/>.</param>
+        public Agent(IAgentTemplate template) {
+            if (template == null) throw new ArgumentNullException(nameof(template));
+            Name = template.Name;
+            foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
+            CostMaximum = template.CostMaximum;
+            StepMaximum = template.StepMaximum;
+            Template = template;
+            planner = new Planner(template.Actions, new ActionNodePool(), template.NeighborLookupMode);
         }
 
         /// <summary>
@@ -84,9 +74,9 @@ namespace MountainGoap {
         private readonly List<ActionPlan> actionSequences = new();
 
         /// <summary>
-        /// Gets the template this agent was created from, or null for agents not vended by <see cref="AgentRegistry"/>.
+        /// Gets the template this agent was created from.
         /// </summary>
-        public AgentTemplate? Template { get; internal set; }
+        public IAgentTemplate Template { get; internal set; }
 
         /// <inheritdoc/>
         IReadOnlyState IReadOnlyAgent.State => State;
@@ -109,20 +99,23 @@ namespace MountainGoap {
         /// </summary>
         public Dictionary<string, object?> Memory { get; set; } = new();
 
-        /// <summary>
-        /// Gets or sets the list of active goals for the agent.
-        /// </summary>
-        public List<BaseGoal> Goals { get; set; } = new();
+        /// <inheritdoc/>
+        IReadOnlyList<IReadOnlyGoal> IReadOnlyAgent.Goals => Template!.Goals;
 
         /// <summary>
-        /// Gets or sets the actions available to the agent.
+        /// Gets the goals this agent pursues. Owned by the agent's template.
         /// </summary>
-        public ActionCollection Actions { get; set; } = new();
+        public IReadOnlyList<IReadOnlyGoal> Goals => Template!.Goals;
 
         /// <summary>
-        /// Gets or sets the sensors available to the agent.
+        /// Gets the actions available to the agent. Owned by the agent's template.
         /// </summary>
-        public List<Sensor> Sensors { get; set; } = new();
+        public IReadOnlyActionIndex Actions => Template!.Actions;
+
+        /// <summary>
+        /// Gets the sensors this agent runs each step. Owned by the agent's template.
+        /// </summary>
+        public IReadOnlyList<Sensor> Sensors => Template!.Sensors;
 
         /// <summary>
         /// Gets or sets the plan cost maximum for the agent.
@@ -137,12 +130,12 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently executing one or more actions.
         /// </summary>
-        public bool IsBusy { get; set; } = false;
+        public bool IsBusy { get; internal set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently planning.
         /// </summary>
-        public bool IsPlanning { get; set; } = false;
+        public bool IsPlanning { get; internal set; } = false;
 
         /// <summary>
         /// You should call this every time your game state updates.
@@ -176,7 +169,6 @@ namespace MountainGoap {
             Template = template;
             State.Clear();
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
-            Goals = new List<BaseGoal>(template.GoalsTemplate);
             Memory = new Dictionary<string, object?>();
             IsBusy = false;
             IsPlanning = false;
@@ -229,7 +221,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="agent">Agent that started planning.</param>
         /// <param name="goal">Goal for which planning was started.</param>
-        internal static void TriggerOnPlanningStartedForSingleGoal(Agent agent, BaseGoal goal) {
+        internal static void TriggerOnPlanningStartedForSingleGoal(Agent agent, IReadOnlyGoal goal) {
             OnPlanningStartedForSingleGoal(agent, goal);
         }
 
@@ -239,7 +231,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that finished planning.</param>
         /// <param name="goal">Goal for which planning was completed.</param>
         /// <param name="utility">Utility of the plan.</param>
-        internal static void TriggerOnPlanningFinishedForSingleGoal(Agent agent, BaseGoal goal, float utility) {
+        internal static void TriggerOnPlanningFinishedForSingleGoal(Agent agent, IReadOnlyGoal goal, float utility) {
             OnPlanningFinishedForSingleGoal(agent, goal, utility);
         }
 
@@ -249,7 +241,7 @@ namespace MountainGoap {
         /// <param name="agent">Agent that finished planning.</param>
         /// <param name="goal">Goal that was selected.</param>
         /// <param name="utility">Utility of the plan.</param>
-        internal static void TriggerOnPlanningFinished(Agent agent, BaseGoal? goal, float utility) {
+        internal static void TriggerOnPlanningFinished(Agent agent, IReadOnlyGoal? goal, float utility) {
             OnPlanningFinished(agent, goal, utility);
         }
 
@@ -267,7 +259,7 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="node">Action node being evaluated.</param>
         /// <param name="nodes">List of nodes in the path that led to this point.</param>
-        internal static void TriggerOnEvaluatedActionNode(ActionNode node, IReadOnlyDictionary<ActionNode, ActionNode> nodes) {
+        internal static void TriggerOnEvaluatedActionNode(IReadOnlyActionNode node, IReadOnlyDictionary<IReadOnlyActionNode, IReadOnlyActionNode> nodes) {
             OnEvaluatedActionNode(node, nodes);
         }
 

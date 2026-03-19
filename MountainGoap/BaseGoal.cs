@@ -8,7 +8,7 @@ namespace MountainGoap {
     /// <summary>
     /// Represents an abstract class for a goal to be achieved for an agent.
     /// </summary>
-    public abstract class BaseGoal {
+    public abstract class BaseGoal : IReadOnlyGoal {
         /// <summary>
         /// Name of the goal.
         /// </summary>
@@ -17,7 +17,13 @@ namespace MountainGoap {
         /// <summary>
         /// Weight to give the goal.
         /// </summary>
-        internal readonly float Weight;
+        public readonly float Weight;
+
+        /// <inheritdoc/>
+        string IReadOnlyGoal.Name => Name;
+
+        /// <inheritdoc/>
+        float IReadOnlyGoal.Weight => Weight;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseGoal"/> class.

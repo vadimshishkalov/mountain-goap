@@ -9,7 +9,7 @@ namespace MountainGoap {
     /// <summary>
     /// Represents an action node in an action graph.
     /// </summary>
-    public class ActionNode : FastPriorityQueueNode {
+    internal class ActionNode : FastPriorityQueueNode, IReadOnlyActionNode {
         /// <summary>
         /// Initializes a new instance of the <see cref="ActionNode"/> class.
         /// </summary>
@@ -23,12 +23,18 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets the planning state of the world for this action node.
         /// </summary>
-        public IPlanningStepState State { get; set; }
+        internal IPlanningStepState State { get; set; }
 
         /// <summary>
         /// Gets or sets the action to be executed when the world is in the defined <see cref="State"/>.
         /// </summary>
-        public ExecutingAction? Action { get; set; }
+        internal ExecutingAction? Action { get; set; }
+
+        /// <inheritdoc/>
+        IReadOnlyAction? IReadOnlyActionNode.Action => Action;
+
+        /// <inheritdoc/>
+        IReadOnlyState IReadOnlyActionNode.State => State;
 
         /// <summary>
         /// Templates confirmed possible by this node or ancestors.

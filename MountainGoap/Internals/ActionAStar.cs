@@ -17,8 +17,8 @@ namespace MountainGoap {
         private readonly FastPriorityQueue<ActionNode> frontier = new(100000);
         private readonly Dictionary<ActionNode, float> costSoFar = new();
         private readonly Dictionary<ActionNode, int> stepsSoFar = new();
-        private readonly Dictionary<ActionNode, ActionNode> cameFrom = new();
-        private BaseGoal? currentGoal;
+        private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new();
+        private IReadOnlyGoal? currentGoal;
 
         /// <summary>
         /// Cost of the plan filled into the last <see cref="Search"/> call's <see cref="ActionPlan"/>.
@@ -32,7 +32,7 @@ namespace MountainGoap {
         /// and <see cref="FinalCost"/> holds the total plan cost. Node lifecycle is owned by
         /// <paramref name="graph"/>; action lifecycle is owned by <paramref name="plan"/>.
         /// </summary>
-        internal void Search(ActionNode start, BaseGoal goal, ActionGraph graph,
+        internal void Search(ActionNode start, IReadOnlyGoal goal, ActionGraph graph,
                              ActionPlan plan, IReadOnlyState baseState,
                              float costMaximum, int stepMaximum) {
             FinalCost = 0;
@@ -81,18 +81,18 @@ namespace MountainGoap {
         }
 
         private static void BuildPath(ActionNode finalPoint, ActionPlan plan,
-                                      Dictionary<ActionNode, ActionNode> cameFrom) {
+                                      Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom) {
             var cursor = finalPoint;
             while (cursor != null && cursor.Action != null && cameFrom.ContainsKey(cursor)) {
                 plan.Steps.Add(cursor.Action);
-                var next = cameFrom[cursor]; // capture before mutating hash
-                cursor.Action = null;        // graph.Dispose() will skip null actions
+                var next = (ActionNode)cameFrom[cursor]; // safe: only ActionNode instances are stored
+                cursor.Action = null;                    // graph.Dispose() will skip null actions
                 cursor = next;
             }
             plan.Steps.Reverse();
         }
 
-        private static float Heuristic(ActionNode actionNode, BaseGoal goal, ActionNode current) {
+        private static float Heuristic(ActionNode actionNode, IReadOnlyGoal goal, ActionNode current) {
             var cost = 0f;
             if (goal is Goal normalGoal) {
                 foreach (var kvp in normalGoal.DesiredState) {
