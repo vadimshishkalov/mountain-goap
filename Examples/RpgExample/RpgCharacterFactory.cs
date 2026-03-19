@@ -63,7 +63,7 @@ namespace Examples {
                     { "nearEnemy", false },
                     { "hp", 10 },
                     { "position", new Vector2(10, 10) },
-                    { "faction", "enemy" },
+                    { "faction", "player" },
                     { "agents", agents }
                 },
                 goals: new() {
