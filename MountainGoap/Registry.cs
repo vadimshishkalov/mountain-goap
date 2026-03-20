@@ -100,6 +100,41 @@ namespace MountainGoap {
         }
 
         /// <summary>
+        /// Returns <c>true</c> if an agent template with the given name is registered.
+        /// </summary>
+        public bool HasTemplate(string name) => agentTemplates.ContainsKey(name);
+
+        /// <summary>
+        /// Attempts to retrieve a registered agent template by name.
+        /// </summary>
+        /// <param name="name">The template name to look up.</param>
+        /// <param name="template">When this method returns, contains the template if found; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the template was found; otherwise <c>false</c>.</returns>
+        public bool TryGetTemplate(string name, out IAgentTemplate? template) {
+            if (agentTemplates.TryGetValue(name, out var t)) {
+                template = t;
+                return true;
+            }
+            template = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if an action with the given name is registered.
+        /// </summary>
+        public bool HasAction(string name) => actionStore.ContainsKey(name);
+
+        /// <summary>
+        /// Attempts to retrieve a registered action by name.
+        /// </summary>
+        /// <param name="name">The action name to look up.</param>
+        /// <param name="action">When this method returns, contains the action if found; otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the action was found; otherwise <c>false</c>.</returns>
+        public bool TryGetAction(string name, out Action? action) {
+            return actionStore.TryGetValue(name, out action);
+        }
+
+        /// <summary>
         /// Returns a runtime instance for the named agent template. Draws from the pool when
         /// available (reinitialising to the template's default state); otherwise creates a new agent.
         /// </summary>
