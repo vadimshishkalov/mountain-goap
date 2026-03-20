@@ -50,6 +50,74 @@ public IAgentTemplate RegisterAgent(string name, State? state = null, List<BaseG
 
 [IAgentTemplate](./mountaingoap.iagenttemplate.md)
 
+### **HasTemplate(String)**
+
+Returns true if an agent template with the given name is registered.
+
+```csharp
+public bool HasTemplate(string name)
+```
+
+#### Parameters
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The template name to look up.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)
+
+### **TryGetTemplate(String, IAgentTemplate)**
+
+Attempts to retrieve a registered agent template by name.
+
+```csharp
+public bool TryGetTemplate(string name, out IAgentTemplate? template)
+```
+
+#### Parameters
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The template name to look up.
+
+`template` [IAgentTemplate](./mountaingoap.iagenttemplate.md)? — When this method returns, contains the template if found; otherwise null.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)
+
+### **HasAction(String)**
+
+Returns true if an action with the given name is registered.
+
+```csharp
+public bool HasAction(string name)
+```
+
+#### Parameters
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The action name to look up.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)
+
+### **TryGetAction(String, Action)**
+
+Attempts to retrieve a registered action by name.
+
+```csharp
+public bool TryGetAction(string name, out Action? action)
+```
+
+#### Parameters
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The action name to look up.
+
+`action` [Action](./mountaingoap.action.md)? — When this method returns, contains the action if found; otherwise null.
+
+#### Returns
+
+[Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)
+
 ### **GetInstance(String)**
 
 Returns a runtime instance for the named agent template. Draws from the pool when available; otherwise creates a new agent.
