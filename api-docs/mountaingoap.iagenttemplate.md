@@ -12,6 +12,8 @@ public interface IAgentTemplate
 
 ### **Name**
 
+Gets the template name used as the registry lookup key. Distinct from [IReadOnlyAgent.Name](./mountaingoap.ireadonlyagent.md), which is a per-instance identifier for debugging.
+
 ```csharp
 string Name { get; }
 ```

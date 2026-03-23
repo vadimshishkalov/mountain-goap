@@ -118,17 +118,19 @@ public bool TryGetAction(string name, out Action? action)
 
 [Boolean](https://docs.microsoft.com/en-us/dotnet/api/system.boolean)
 
-### **GetInstance(String)**
+### **GetInstance(String, String)**
 
 Returns a runtime instance for the named agent template. Draws from the pool when available; otherwise creates a new agent.
 
 ```csharp
-public IAgent GetInstance(string name)
+public IAgent GetInstance(string templateName, string? name = null)
 ```
 
 #### Parameters
 
-`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The name of a previously registered agent template.
+`templateName` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string) — The name of a previously registered agent template.
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)? — Optional instance name for identification/debugging. When null, auto-generated as `templateName_guid`.
 
 #### Returns
 
