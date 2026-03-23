@@ -94,7 +94,11 @@ registry.RegisterAgent(
     actions: new() { seekHappiness });
 
 IAgent agent = registry.GetInstance("Happiness Agent");
+// or with a custom instance name for debugging:
+IAgent agent2 = registry.GetInstance("Happiness Agent", name: "Bob");
 ```
+
+The first argument to `GetInstance` is the **template name** (the registry lookup key). The optional `name` parameter sets a per-instance identifier for debugging — when omitted it is auto-generated as `templateName_guid`.
 
 Actions registered with the same name are deduplicated. Agent instances can be returned to the pool with `registry.ReturnInstance(agent)`.
 

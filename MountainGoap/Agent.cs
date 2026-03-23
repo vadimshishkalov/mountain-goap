@@ -11,18 +11,20 @@ namespace MountainGoap {
     /// </summary>
     public class Agent : IAgent {
         /// <summary>
-        /// Name of the agent.
+        /// Name of the agent instance, used for identification and debugging.
+        /// Auto-generated from the template name plus a GUID when created via a <see cref="Registry"/>.
         /// </summary>
-        public string Name { get; }
+        public string Name { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Agent"/> class from a template.
         /// </summary>
         /// <param name="template">Template describing this agent type. Obtain via <see cref="Registry.RegisterAgent"/>.</param>
         /// <param name="poolManager">Shared pool manager. Pass <c>null</c> to let the agent create its own pools.</param>
-        public Agent(IAgentTemplate template, PoolManager? poolManager = null) {
+        /// <param name="name">Optional instance name for identification/debugging. When <c>null</c>, auto-generated from the template name.</param>
+        public Agent(IAgentTemplate template, PoolManager? poolManager = null, string? name = null) {
             if (template == null) throw new ArgumentNullException(nameof(template));
-            Name = template.Name;
+            Name = name ?? template.Name + "_" + Guid.NewGuid().ToString("N");
             State = new State(poolManager?.StatePool);
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
             Configuration = template.Configuration;
@@ -170,8 +172,9 @@ namespace MountainGoap {
         /// Resets mutable per-instance state from the given template so this agent can be reused
         /// from a pool. The planner and its internal object pools are retained across reuses.
         /// </summary>
-        internal void Reinitialize(AgentTemplate template) {
+        internal void Reinitialize(AgentTemplate template, string? name = null) {
             Template = template;
+            Name = name ?? template.Name + "_" + Guid.NewGuid().ToString("N");
             Configuration = template.Configuration;
             State.Clear();
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);

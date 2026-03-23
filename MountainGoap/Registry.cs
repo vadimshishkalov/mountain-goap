@@ -138,16 +138,17 @@ namespace MountainGoap {
         /// Returns a runtime instance for the named agent template. Draws from the pool when
         /// available (reinitialising to the template's default state); otherwise creates a new agent.
         /// </summary>
-        /// <param name="name">The name of a previously registered agent template.</param>
+        /// <param name="templateName">The name of a previously registered agent template.</param>
+        /// <param name="name">Optional instance name for identification/debugging. When <c>null</c>, auto-generated as <c>templateName_guid</c>.</param>
         /// <returns>A ready-to-use <see cref="IAgent"/> instance.</returns>
-        public IAgent GetInstance(string name) {
-            if (!agentTemplates.TryGetValue(name, out var template))
-                throw new InvalidOperationException($"Agent template '{name}' is not registered. Call RegisterAgent first.");
-            if (agentPools[name].TryPop(out var agent)) {
-                agent.Reinitialize(template);
+        public IAgent GetInstance(string templateName, string? name = null) {
+            if (!agentTemplates.TryGetValue(templateName, out var template))
+                throw new InvalidOperationException($"Agent template '{templateName}' is not registered. Call RegisterAgent first.");
+            if (agentPools[templateName].TryPop(out var agent)) {
+                agent.Reinitialize(template, name);
                 return agent;
             }
-            return new Agent(template, poolManager);
+            return new Agent(template, poolManager, name);
         }
 
         /// <summary>

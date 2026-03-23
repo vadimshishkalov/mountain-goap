@@ -16,7 +16,7 @@ Implements [IAgent](./mountaingoap.iagent.md), [IReadOnlyAgent](./mountaingoap.i
 
 ### **Name**
 
-Gets the name of the agent.
+Gets the name of the agent instance, used for identification and debugging. Auto-generated from the template name plus a GUID when created via a [Registry](./mountaingoap.registry.md). Distinct from [IAgentTemplate.Name](./mountaingoap.iagenttemplate.md), which is the template lookup key.
 
 ```csharp
 public string Name { get; }
@@ -124,12 +124,12 @@ public bool IsPlanning { get; }
 
 ## Constructors
 
-### **Agent(IAgentTemplate, PoolManager)**
+### **Agent(IAgentTemplate, PoolManager, String)**
 
 Initializes a new instance of the [Agent](./mountaingoap.agent.md) class. Prefer [Registry.GetInstance](./mountaingoap.registry.md) for pooled creation.
 
 ```csharp
-public Agent(IAgentTemplate template, PoolManager? poolManager = null)
+public Agent(IAgentTemplate template, PoolManager? poolManager = null, string? name = null)
 ```
 
 #### Parameters
@@ -137,6 +137,8 @@ public Agent(IAgentTemplate template, PoolManager? poolManager = null)
 `template` [IAgentTemplate](./mountaingoap.iagenttemplate.md) — The agent template defining shared configuration.
 
 `poolManager` [PoolManager](./mountaingoap.poolmanager.md)? — Optional shared object pools for planning.
+
+`name` [String](https://docs.microsoft.com/en-us/dotnet/api/system.string)? — Optional instance name for identification/debugging. When null, auto-generated as `templateName_guid`.
 
 ## Methods
 
