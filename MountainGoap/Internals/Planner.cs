@@ -12,7 +12,7 @@ namespace MountainGoap {
     /// goal are rented for each pass and disposed at the end.
     /// </summary>
     internal class Planner {
-        private readonly ActionAStar astar = new();
+        private readonly ActionAStar astar;
         private readonly IActionGraphPool graphPool;
         private readonly IActionPlanPool planPool;
         private readonly IActionNodePool nodePool;
@@ -23,8 +23,10 @@ namespace MountainGoap {
         /// </summary>
         /// <param name="actions">Indexed action collection for the owning agent.</param>
         /// <param name="poolManager">Shared pool manager. Null pools fall back to per-instance creation.</param>
-        internal Planner(IReadOnlyActionIndex actions, PoolManager? poolManager) {
+        /// <param name="frontierInitialCapacity">Initial capacity of the A* frontier queue. See <see cref="AgentConfiguration.FrontierInitialCapacity"/>.</param>
+        internal Planner(IReadOnlyActionIndex actions, PoolManager? poolManager, int frontierInitialCapacity) {
             this.actions = actions;
+            astar = new ActionAStar(frontierInitialCapacity);
             nodePool = poolManager?.NodePool ?? new ActionNodePool();
             graphPool = poolManager?.GraphPool ?? new ActionGraphPool();
             planPool = poolManager?.PlanPool ?? new ActionPlanPool();
