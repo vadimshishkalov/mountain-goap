@@ -13,8 +13,8 @@ namespace MountainGoap {
     /// is created automatically.
     /// </summary>
     public class ActionNodePool : IActionNodePool {
-        private readonly ConcurrentStack<ActionNode> nodes = new();
-        private readonly ConcurrentStack<ExecutingAction> actions = new();
+        private readonly ConcurrentStack<ActionNode> nodes = new ConcurrentStack<ActionNode>();
+        private readonly ConcurrentStack<ExecutingAction> actions = new ConcurrentStack<ExecutingAction>();
 
         ActionNode IActionNodePool.RentNode(ExecutingAction? action, IPlanningStepState state) {
             if (nodes.TryPop(out var node)) {

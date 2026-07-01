@@ -43,10 +43,10 @@ namespace MountainGoap {
         /// </summary>
         private readonly CostCallback costCallback;
 
-        private static readonly Dictionary<string, object?> EmptyObjectNullableDict = new();
-        private static readonly Dictionary<string, ComparisonValuePair> EmptyComparisonDict = new();
-        private static readonly Dictionary<string, object> EmptyObjectDict = new();
-        private static readonly Dictionary<string, string> EmptyStringDict = new();
+        private static readonly Dictionary<string, object?> EmptyObjectNullableDict = new Dictionary<string, object?>();
+        private static readonly Dictionary<string, ComparisonValuePair> EmptyComparisonDict = new Dictionary<string, ComparisonValuePair>();
+        private static readonly Dictionary<string, object> EmptyObjectDict = new Dictionary<string, object>();
+        private static readonly Dictionary<string, string> EmptyStringDict = new Dictionary<string, string>();
 
         /// <summary>
         /// Preconditions for the action. These things are required for the action to execute.
@@ -101,14 +101,14 @@ namespace MountainGoap {
         /// <param name="stateCostDeltaMultiplier">Callback for multiplier for delta value to provide delta cost.</param>
         [Obsolete("Use ActionRegistry.RegisterAction instead.")]
         public Action(string? name = null, Dictionary<string, PermutationSelectorCallback>? permutationSelectors = null, ExecutorCallback? executor = null, float cost = 1f, CostCallback? costCallback = null, Dictionary<string, object?>? preconditions = null, Dictionary<string, ComparisonValuePair>? comparativePreconditions = null, Dictionary<string, object?>? postconditions = null, Dictionary<string, object>? arithmeticPostconditions = null, Dictionary<string, string>? parameterPostconditions = null, StateMutatorCallback? stateMutator = null, StateCheckerCallback? stateChecker = null, StateCostDeltaMultiplierCallback? stateCostDeltaMultiplier = null) {
-            this.permutationSelectors = permutationSelectors ?? new();
+            this.permutationSelectors = permutationSelectors ?? new Dictionary<string, PermutationSelectorCallback>();
             _permKeys = new string[this.permutationSelectors.Count];
             int ki = 0;
             foreach (var key in this.permutationSelectors.Keys) _permKeys[ki++] = key;
             this.executor = executor ?? DefaultExecutorCallback;
             Name = name ?? $"Action {Guid.NewGuid()} ({this.executor.GetMethodInfo().Name})";
             this.cost = cost;
-            this.costCallback = costCallback ?? ((_, _) => this.cost);
+            this.costCallback = costCallback ?? ((_, __) => this.cost);
             this.preconditions = preconditions ?? EmptyObjectNullableDict;
             this.comparativePreconditions = comparativePreconditions ?? EmptyComparisonDict;
             this.postconditions = postconditions ?? EmptyObjectNullableDict;
@@ -122,7 +122,7 @@ namespace MountainGoap {
             _postconditionKeys = CollectKeys(this.postconditions.Keys, this.arithmeticPostconditions.Keys, this.parameterPostconditions.Values);
         }
 
-        private static readonly HashSet<string> EmptyKeySet = new();
+        private static readonly HashSet<string> EmptyKeySet = new HashSet<string>();
 
         private static HashSet<string> CollectKeys(params IEnumerable<string>[] sources) {
             HashSet<string>? set = null;

@@ -9,7 +9,7 @@ namespace MountainGoap {
     /// Stack-backed pool for <see cref="ActionGraph"/> instances.
     /// </summary>
     internal class ActionGraphPool : IActionGraphPool {
-        private readonly ConcurrentStack<ActionGraph> pool = new();
+        private readonly ConcurrentStack<ActionGraph> pool = new ConcurrentStack<ActionGraph>();
 
         ActionGraph IActionGraphPool.Rent(IReadOnlyActionIndex index, IActionNodePool nodePool, NeighborLookupMode mode) {
             var graph = pool.TryPop(out var g) ? g : new ActionGraph(this);

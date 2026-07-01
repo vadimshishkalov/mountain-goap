@@ -12,10 +12,10 @@ namespace MountainGoap {
     /// </summary>
     internal class PlanningBaseState : IPlanningBaseState {
         private readonly IStatePool pool;
-        internal readonly Dictionary<string, object?> data = new();
-        internal readonly HashSet<string> keysCache = new();
-        private readonly List<PlanningNodeState> children = new();
-        private readonly List<PlanningNodeState> disposeBuffer = new();
+        internal readonly Dictionary<string, object?> data = new Dictionary<string, object?>();
+        internal readonly HashSet<string> keysCache = new HashSet<string>();
+        private readonly List<PlanningNodeState> children = new List<PlanningNodeState>();
+        private readonly List<PlanningNodeState> disposeBuffer = new List<PlanningNodeState>();
 
         internal PlanningBaseState(IStatePool pool) {
             this.pool = pool;

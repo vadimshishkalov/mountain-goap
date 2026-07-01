@@ -22,7 +22,7 @@ namespace MountainGoap {
         /// <param name="desiredState">Desired state for the comparative goal.</param>
         public ComparativeGoal(string? name = null, float weight = 1f, Dictionary<string, ComparisonValuePair>? desiredState = null)
             : base(name, weight) {
-            DesiredState = desiredState ?? new();
+            DesiredState = desiredState ?? new Dictionary<string, ComparisonValuePair>();
         }
     }
 }

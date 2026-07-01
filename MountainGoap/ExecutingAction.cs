@@ -21,7 +21,7 @@ namespace MountainGoap {
         /// <param name="parameters">Resolved permutation parameters for this instance.</param>
         public ExecutingAction(Action template, Dictionary<string, object?>? parameters = null) {
             Template = template;
-            this.parameters = parameters ?? new();
+            this.parameters = parameters ?? new Dictionary<string, object?>();
         }
 
         /// <summary>

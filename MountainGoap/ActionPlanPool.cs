@@ -9,7 +9,7 @@ namespace MountainGoap {
     /// Stack-backed pool for <see cref="ActionPlan"/> instances.
     /// </summary>
     internal class ActionPlanPool : IActionPlanPool {
-        private readonly ConcurrentStack<ActionPlan> pool = new();
+        private readonly ConcurrentStack<ActionPlan> pool = new ConcurrentStack<ActionPlan>();
 
         ActionPlan IActionPlanPool.Rent(IActionNodePool nodePool) {
             var plan = pool.TryPop(out var p) ? p : new ActionPlan(this);

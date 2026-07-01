@@ -3,6 +3,8 @@
 // </copyright>
 
 namespace MountainGoap {
+    using System;
+
     /// <summary>
     /// Utilities for the MountainGoap library.
     /// </summary>

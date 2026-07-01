@@ -3,6 +3,8 @@
 // </copyright>
 
 namespace MountainGoap {
+    using System;
+
     /// <summary>
     /// Internal interface for the immutable base-layer snapshot taken at the start of each planning pass.
     /// Provides a <see cref="Snapshot"/> factory that produces the first planning node state,

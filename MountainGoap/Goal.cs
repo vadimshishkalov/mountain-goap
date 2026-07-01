@@ -22,7 +22,7 @@ namespace MountainGoap {
         /// <param name="desiredState">Desired end state of the goal.</param>
         public Goal(string? name = null, float weight = 1f, Dictionary<string, object?>? desiredState = null)
             : base(name, weight) {
-            DesiredState = desiredState ?? new();
+            DesiredState = desiredState ?? new Dictionary<string, object?>();
         }
     }
 }

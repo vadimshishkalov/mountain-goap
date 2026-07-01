@@ -3,6 +3,7 @@
 // </copyright>
 
 namespace MountainGoap {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -12,7 +13,7 @@ namespace MountainGoap {
     /// </summary>
     internal class PlanningNodeState : IPlanningStepState, IDisposable {
         private readonly IStatePool pool;
-        private readonly Dictionary<string, object?> delta = new();
+        private readonly Dictionary<string, object?> delta = new Dictionary<string, object?>();
         private PlanningBaseState baseState;
 
         internal PlanningNodeState(PlanningBaseState baseState, IStatePool pool) {
