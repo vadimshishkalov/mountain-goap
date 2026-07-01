@@ -29,7 +29,7 @@ namespace MountainGoap {
             foreach (var kvp in template.StateTemplate) State.Set(kvp.Key, kvp.Value);
             Configuration = template.Configuration;
             Template = template;
-            planner = new Planner(template.Actions, poolManager);
+            planner = new Planner(template.Actions, poolManager, template.Configuration.FrontierInitialCapacity);
         }
 
         /// <summary>
