@@ -165,6 +165,10 @@ registry.RegisterAgent(
 - **Growth reallocations:** searches whose frontier exceeds the configured capacity incur a few transient array allocations while doubling. Set `FrontierInitialCapacity` to a size you expect to suffice to avoid this. Passing the old `100000` reproduces the upstream up-front reservation with no growth.
 - **No more silent overflow:** exceeding the capacity now triggers growth rather than undefined behaviour.
 
+### C# language version
+
+`LangVersion` drops from 10.0 to **8.0**, the netstandard2.1 default. This finishes commit `cad52d7`'s netstandard2.1 conversion, which broadened the framework but left the language pinned at 10.0 — so C#-8 (Unity) toolchains still couldn't build the source. Some `init` accessors become `set`.
+
 ## Quickstart
 
 ### Using distributable
