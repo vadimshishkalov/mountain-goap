@@ -22,7 +22,7 @@ namespace MountainGoap {
         /// <param name="desiredState">States to be maximized or minimized.</param>
         public ExtremeGoal(string? name = null, float weight = 1f, Dictionary<string, bool>? desiredState = null)
             : base(name, weight) {
-            DesiredState = desiredState ?? new();
+            DesiredState = desiredState ?? new Dictionary<string, bool>();
         }
     }
 }

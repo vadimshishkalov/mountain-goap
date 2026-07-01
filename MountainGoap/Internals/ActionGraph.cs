@@ -14,12 +14,12 @@ namespace MountainGoap {
     /// </summary>
     internal class ActionGraph : IDisposable {
         private readonly IActionGraphPool graphPool;
-        private readonly List<ActionNode> rentedNodes = new();
+        private readonly List<ActionNode> rentedNodes = new List<ActionNode>();
 
         // Reusable temp buffers inside Neighbors()/ExpandTemplate()/BuildNeighbor().
-        private readonly HashSet<Action> passedTemp = new();
-        private readonly HashSet<Action> failedTemp = new();
-        private readonly HashSet<Action> deltaSetTemp = new();
+        private readonly HashSet<Action> passedTemp = new HashSet<Action>();
+        private readonly HashSet<Action> failedTemp = new HashSet<Action>();
+        private readonly HashSet<Action> deltaSetTemp = new HashSet<Action>();
 
         private IReadOnlyActionIndex actionIndex = null!;
         private IActionNodePool nodePool = null!;

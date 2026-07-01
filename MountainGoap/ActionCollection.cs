@@ -15,13 +15,13 @@ namespace MountainGoap {
     /// Supports collection-initializer syntax: <c>new ActionCollection { action1, action2 }</c>.
     /// </summary>
     public class ActionCollection : IReadOnlyActionIndex {
-        private readonly List<Action> actions = new();
+        private readonly List<Action> actions = new List<Action>();
 
         // Inverse index: precondition key → actions that reference that key.
-        private readonly Dictionary<string, List<Action>> index = new();
+        private readonly Dictionary<string, List<Action>> index = new Dictionary<string, List<Action>>();
 
         // Actions with no static precondition keys (stateChecker-only); always candidates.
-        private readonly List<Action> alwaysCandidates = new();
+        private readonly List<Action> alwaysCandidates = new List<Action>();
 
         /// <inheritdoc/>
         public int Count => actions.Count;

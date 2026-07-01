@@ -15,9 +15,9 @@ namespace MountainGoap {
     /// </summary>
     internal class ActionAStar {
         private readonly FastPriorityQueue<ActionNode> frontier;
-        private readonly Dictionary<ActionNode, float> costSoFar = new();
-        private readonly Dictionary<ActionNode, int> stepsSoFar = new();
-        private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new();
+        private readonly Dictionary<ActionNode, float> costSoFar = new Dictionary<ActionNode, float>();
+        private readonly Dictionary<ActionNode, int> stepsSoFar = new Dictionary<ActionNode, int>();
+        private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new Dictionary<IReadOnlyActionNode, IReadOnlyActionNode>();
         private IReadOnlyGoal? currentGoal;
 
         /// <summary>

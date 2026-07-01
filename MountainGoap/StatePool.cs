@@ -11,8 +11,8 @@ namespace MountainGoap {
     /// callers may share a single pool across multiple agents. Thread-safe.
     /// </summary>
     public class StatePool : IStatePool {
-        private readonly ConcurrentStack<PlanningNodeState> nodeStates = new();
-        private readonly ConcurrentStack<PlanningBaseState> baseStates = new();
+        private readonly ConcurrentStack<PlanningNodeState> nodeStates = new ConcurrentStack<PlanningNodeState>();
+        private readonly ConcurrentStack<PlanningBaseState> baseStates = new ConcurrentStack<PlanningBaseState>();
 
         PlanningNodeState IStatePool.RentNodeState(PlanningBaseState baseState) {
             if (nodeStates.TryPop(out var s)) {

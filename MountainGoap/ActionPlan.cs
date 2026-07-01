@@ -19,7 +19,7 @@ namespace MountainGoap {
         /// Ordered list of actions to execute. Internal — external callers use the
         /// <see cref="IActionPlan.Steps"/> read-only view.
         /// </summary>
-        internal readonly List<ExecutingAction> Steps = new();
+        internal readonly List<ExecutingAction> Steps = new List<ExecutingAction>();
 
         /// <inheritdoc/>
         IReadOnlyList<IReadOnlyAction> IActionPlan.Steps => Steps;

@@ -21,7 +21,7 @@ namespace MountainGoap {
             return (IReadOnlyState state) => {
                 if (cached != null) return cached;
                 cached = new List<object>();
-                foreach (var item in values) if (item is not null) cached.Add(item);
+                foreach (var item in values) if (item != null) cached.Add(item);
                 return cached;
             };
         }
@@ -33,11 +33,11 @@ namespace MountainGoap {
         /// <param name="key">Key of the state to check for the collection.</param>
         /// <returns>A lambda function that returns all elements from the collection in the state.</returns>
         public static PermutationSelectorCallback SelectFromCollectionInState<T>(string key) {
-            List<object> output = new();
+            List<object> output = new List<object>();
             return (IReadOnlyState state) => {
                 output.Clear();
-                if (state[key] is not IEnumerable<T> values) return output;
-                foreach (var item in values) if (item is not null) output.Add(item);
+                if (!(state[key] is IEnumerable<T> values)) return output;
+                foreach (var item in values) if (item != null) output.Add(item);
                 return output;
             };
         }

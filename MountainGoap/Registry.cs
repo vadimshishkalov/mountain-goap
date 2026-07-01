@@ -15,9 +15,9 @@ namespace MountainGoap {
     public class Registry {
         private readonly AgentConfiguration defaultConfiguration;
         private readonly PoolManager? poolManager;
-        private readonly Dictionary<string, AgentTemplate> agentTemplates = new();
-        private readonly Dictionary<string, Stack<Agent>> agentPools = new();
-        private readonly Dictionary<string, Action> actionStore = new();
+        private readonly Dictionary<string, AgentTemplate> agentTemplates = new Dictionary<string, AgentTemplate>();
+        private readonly Dictionary<string, Stack<Agent>> agentPools = new Dictionary<string, Stack<Agent>>();
+        private readonly Dictionary<string, Action> actionStore = new Dictionary<string, Action>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Registry"/> class.

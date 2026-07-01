@@ -73,8 +73,8 @@ namespace MountainGoap {
         public static event EvaluatedActionNodeEvent? OnEvaluatedActionNode;
 
         private readonly Planner planner;
-        private readonly List<ActionPlan> actionSequences = new();
-        private readonly List<ActionPlan> cullableSequences = new();
+        private readonly List<ActionPlan> actionSequences = new List<ActionPlan>();
+        private readonly List<ActionPlan> cullableSequences = new List<ActionPlan>();
         private volatile bool _isBusy;
         private volatile bool _isPlanning;
 
@@ -102,7 +102,7 @@ namespace MountainGoap {
         /// <summary>
         /// Gets or sets the memory storage object for the agent.
         /// </summary>
-        public Dictionary<string, object?> Memory { get; set; } = new();
+        public Dictionary<string, object?> Memory { get; set; } = new Dictionary<string, object?>();
 
         /// <inheritdoc/>
         IReadOnlyList<IReadOnlyGoal> IReadOnlyAgent.Goals => Template!.Goals;
@@ -126,7 +126,7 @@ namespace MountainGoap {
         /// Gets or sets the behavioural configuration for this agent instance.
         /// Initialised from the template; can be overridden per-instance at runtime.
         /// </summary>
-        public AgentConfiguration Configuration { get; set; } = new();
+        public AgentConfiguration Configuration { get; set; } = new AgentConfiguration();
 
         /// <summary>
         /// Gets or sets a value indicating whether the agent is currently executing one or more actions.

@@ -12,7 +12,7 @@ namespace MountainGoap {
     /// Supports collection initializer syntax: new State { { "key", value } }.
     /// </summary>
     public class State : IExecutionState, IEnumerable<KeyValuePair<string, object?>> {
-        private readonly ConcurrentDictionary<string, object?> data = new();
+        private readonly ConcurrentDictionary<string, object?> data = new ConcurrentDictionary<string, object?>();
         private readonly IStatePool pool;
 
         /// <summary>

@@ -40,14 +40,14 @@ namespace MountainGoap {
         /// Templates confirmed possible by this node or ancestors.
         /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>
-        internal HashSet<MountainGoap.Action> Possible { get; } = new();
+        internal HashSet<MountainGoap.Action> Possible { get; } = new HashSet<MountainGoap.Action>();
 
         /// <summary>
         /// Templates not yet checked for this node's state. Promoted to
         /// <see cref="Possible"/> or discarded during expansion.
         /// Used by <see cref="NeighborLookupMode.Aggressive"/>.
         /// </summary>
-        internal HashSet<MountainGoap.Action> Candidates { get; } = new();
+        internal HashSet<MountainGoap.Action> Candidates { get; } = new HashSet<MountainGoap.Action>();
 
         /// <summary>
         /// Cost to traverse this node.
