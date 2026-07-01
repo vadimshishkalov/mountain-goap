@@ -143,6 +143,28 @@ var registry = new Registry(poolManager: pool);
 
 `Step(StepMode.Default)` now offloads planning to a background worker pool. For synchronous planning, use `agent.Plan()` or `Step(StepMode.OneAction)`.
 
+### A* frontier capacity
+
+Upstream sized the A* frontier (open-set) priority queue to a fixed **100000** nodes per agent, allocated up front regardless of problem size. Exceeding that limit was undefined behaviour with no error in Release builds.
+
+This fork makes the frontier **configurable and self-growing**:
+
+- The starting size is set via `AgentConfiguration.FrontierInitialCapacity` (default **1024**).
+- If a search would exceed the current capacity, the queue grows by **2x** automatically, so the initial value is a starting size, not a hard cap. Under-sizing is self-healing instead of corrupting.
+
+```csharp
+registry.RegisterAgent(
+    name: "My Agent",
+    // ...
+    configuration: new AgentConfiguration { FrontierInitialCapacity = 4096 });
+```
+
+**Behaviour changes to be aware of:**
+
+- **Lower default memory:** each agent now reserves ~1024 nodes (~8 KB) instead of ~100000 (~800 KB) up front. The queue grows toward the high-water mark of the agent's deepest search and is then reused across planning passes, so steady-state allocation returns to zero after warmup.
+- **Growth reallocations:** searches whose frontier exceeds the configured capacity incur a few transient array allocations while doubling. Set `FrontierInitialCapacity` to a size you expect to suffice to avoid this. Passing the old `100000` reproduces the upstream up-front reservation with no growth.
+- **No more silent overflow:** exceeding the capacity now triggers growth rather than undefined behaviour.
+
 ## Quickstart
 
 ### Using distributable
