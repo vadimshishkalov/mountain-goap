@@ -14,11 +14,21 @@ namespace MountainGoap {
     /// is delegated to the <see cref="ActionGraph"/> and <see cref="ActionPlan"/> passed in.
     /// </summary>
     internal class ActionAStar {
-        private readonly FastPriorityQueue<ActionNode> frontier = new(100000);
+        private readonly FastPriorityQueue<ActionNode> frontier;
         private readonly Dictionary<ActionNode, float> costSoFar = new();
         private readonly Dictionary<ActionNode, int> stepsSoFar = new();
         private readonly Dictionary<IReadOnlyActionNode, IReadOnlyActionNode> cameFrom = new();
         private IReadOnlyGoal? currentGoal;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ActionAStar"/> class.
+        /// </summary>
+        /// <param name="frontierInitialCapacity">Initial capacity of the frontier (open-set) queue.
+        /// The queue grows by 2x on overflow, so this is a starting size, not a hard cap. Clamped to a
+        /// minimum of 1 so that 2x growth always makes progress.</param>
+        internal ActionAStar(int frontierInitialCapacity) {
+            frontier = new FastPriorityQueue<ActionNode>(Math.Max(1, frontierInitialCapacity));
+        }
 
         /// <summary>
         /// Cost of the plan filled into the last <see cref="Search"/> call's <see cref="ActionPlan"/>.
@@ -44,7 +54,7 @@ namespace MountainGoap {
             stepsSoFar.Clear();
             cameFrom.Clear();
 
-            frontier.Enqueue(start, 0);
+            EnqueueWithGrowth(start, 0);
             cameFrom[start] = start;
             costSoFar[start] = 0;
             stepsSoFar[start] = 0;
@@ -63,7 +73,7 @@ namespace MountainGoap {
                         costSoFar[next] = newCost;
                         stepsSoFar[next] = newStepCount;
                         float priority = newCost + Heuristic(next, goal, current);
-                        frontier.Enqueue(next, priority);
+                        EnqueueWithGrowth(next, priority);
                         cameFrom[next] = current;
                         Agent.TriggerOnEvaluatedActionNode(next, cameFrom);
                     }
@@ -78,6 +88,16 @@ namespace MountainGoap {
             costSoFar.Clear();
             stepsSoFar.Clear();
             cameFrom.Clear();
+        }
+
+        /// <summary>
+        /// Enqueues a node into the frontier, growing the queue by 2x first if it would otherwise
+        /// overflow. Guarding before the enqueue keeps <c>Count</c> below <c>MaxSize</c>, so the underlying
+        /// fixed-size queue never reports full.
+        /// </summary>
+        private void EnqueueWithGrowth(ActionNode node, float priority) {
+            if (frontier.Count >= frontier.MaxSize) frontier.Resize(frontier.MaxSize * 2);
+            frontier.Enqueue(node, priority);
         }
 
         private static void BuildPath(ActionNode finalPoint, ActionPlan plan,
